@@ -15,7 +15,7 @@ export default function TaskSummaryCard({ task, order }) {
         <div>
           <p className="eyebrow">در انتظار اقدام</p>
           <h3>{title}</h3>
-          <p className="summary-copy">برای مشاهده جزئیات و تکمیل فرم وارد درخواست شوید.</p>
+          <p className="summary-copy">برای تکمیل فرم، درخواست را باز کنید.</p>
         </div>
       </div>
       <div className="task-summary-side">

@@ -27,7 +27,7 @@
   background: var(--cf-surface) !important;
   color: var(--cf-text) !important;
   box-shadow: none !important;
-  font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif !important;
+  font-family: "IRANYekan", IRANSans, Tahoma, Arial, sans-serif !important;
 }
 
 .fjs-form {
@@ -270,7 +270,7 @@
   border: 1px solid var(--cf-border) !important;
   border-radius: var(--cf-radius) !important;
   box-shadow: 0 18px 55px rgba(23, 33, 29, 0.2) !important;
-  font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif !important;
+  font-family: "IRANYekan", IRANSans, Tahoma, Arial, sans-serif !important;
 }
 
 .flatpickr-calendar.open {

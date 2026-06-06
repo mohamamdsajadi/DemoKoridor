@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "IRANYekan";
+  src: url("/fonts/iranyekan/iranyekanwebregular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IRANYekan";
+  src: url("/fonts/iranyekan/iranyekanwebmedium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IRANYekan";
+  src: url("/fonts/iranyekan/iranyekanwebbold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #f4f1f7;
   --bg-strong: #ece3f1;
@@ -38,7 +62,7 @@ body {
     linear-gradient(135deg, rgba(233, 1, 159, 0.08), transparent 30%),
     linear-gradient(225deg, rgba(58, 58, 58, 0.06), transparent 34%),
     var(--bg);
-  font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif;
+  font-family: "IRANYekan", IRANSans, Tahoma, Arial, sans-serif;
 }
 
 button,
@@ -123,7 +147,7 @@ button {
   color: var(--graphite);
   background: rgba(255, 255, 255, 0.74);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.4;
   text-decoration: none;
 }
@@ -139,8 +163,8 @@ button {
   align-items: stretch;
   justify-content: space-between;
   gap: 24px;
-  min-height: 190px;
-  padding: 30px;
+  min-height: 176px;
+  padding: 28px;
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: var(--radius);
   background:
@@ -159,8 +183,8 @@ button {
 .eyebrow {
   margin: 0 0 7px;
   color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 h1,
@@ -171,20 +195,23 @@ p {
 }
 
 h1 {
-  margin-bottom: 10px;
-  font-size: clamp(32px, 4vw, 52px);
-  line-height: 1.15;
+  margin-bottom: 12px;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.35;
   letter-spacing: 0;
 }
 
 h2 {
   margin-bottom: 10px;
-  font-size: 20px;
+  font-size: 19px;
+  font-weight: 700;
 }
 
 h3 {
   margin-bottom: 0;
-  font-size: 17px;
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1.55;
 }
 
@@ -192,8 +219,8 @@ h3 {
   max-width: 620px;
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 15px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 2;
 }
 
 .hero-badges {
@@ -210,7 +237,7 @@ h3 {
   color: var(--accent-strong);
   background: var(--accent-soft);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .hero-actions {
@@ -238,7 +265,8 @@ h3 {
 }
 
 .metric-card strong {
-  font-size: 34px;
+  font-size: 30px;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -252,7 +280,7 @@ h3 {
   min-height: 44px;
   border-radius: var(--radius);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
   transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
 }
 
@@ -318,7 +346,7 @@ h3 {
   background: var(--surface-soft);
   color: var(--graphite);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .capability-list {
@@ -425,7 +453,7 @@ h3 {
 .open-indicator {
   color: var(--accent-strong);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .task-card {
@@ -487,7 +515,7 @@ h3 {
   border-radius: var(--radius);
   color: var(--accent-strong);
   background: var(--accent-soft);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .skeleton-index {
@@ -502,7 +530,7 @@ h3 {
   padding: 7px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .status-pill--ready {
@@ -641,7 +669,11 @@ h3 {
   gap: 7px;
   color: var(--text);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
+}
+
+.detail-header h1 {
+  font-size: clamp(26px, 2.4vw, 34px);
 }
 
 .native-field input,

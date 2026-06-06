@@ -59,7 +59,7 @@ export default function Home() {
             <img src="/brand/mehrpars-purple.svg" alt="لوگوی مهرپارس" />
             <span>
               <strong>مهرپارس</strong>
-              <small>پنل فرایندهای سازمانی</small>
+              <small>کارتابل درخواست‌ها</small>
             </span>
           </a>
           <div className="nav-links" aria-label="دسترسی سریع">
@@ -72,10 +72,10 @@ export default function Home() {
         <header className="hero-panel">
           <div className="brand-block">
             <div>
-              <p className="eyebrow">Mehrpars Enterprise Workflow</p>
-              <h1>میز عملیات سازمانی</h1>
+              <p className="eyebrow">کارتابل سازمانی مهرپارس</p>
+              <h1>درخواست‌های جاری</h1>
               <p className="hero-copy">
-                تجربه‌ای فارسی، راست‌چین و آماده ارائه برای اجرای سناریوهای فرایندی، مدیریت درخواست‌ها و نمایش بلوغ محصولی مهرپارس.
+                درخواست‌های باز، فرم‌های در انتظار تکمیل و وضعیت اقدام‌ها در این بخش نمایش داده می‌شود.
               </p>
               <div className="hero-badges" aria-label="حوزه‌های فعالیت">
                 <span>دولت الکترونیک</span>
@@ -106,7 +106,7 @@ export default function Home() {
             <p className="eyebrow">سناریوی جلسه</p>
             <h2>درخواست تأیید خرید</h2>
             <p>
-              این سناریو نمایشی برای ثبت اطلاعات، تکمیل فرم و ارسال نتیجه در یک تجربه سازمانی تمیز و قابل ارائه طراحی شده است.
+              جریان نمونه برای بررسی درخواست خرید و ثبت اطلاعات مورد نیاز واحد مربوطه.
             </p>
             <div className="steps">
               <span>۱. ایجاد درخواست</span>
@@ -115,9 +115,9 @@ export default function Home() {
             </div>
             <div className="capability-list">
               <strong>تمرکز دمو</strong>
-              <span>تجربه کاربری فارسی</span>
-              <span>فرم‌های سازمانی قابل توسعه</span>
-              <span>نمای عملیاتی مناسب جلسه</span>
+              <span>نمایش صف درخواست‌ها</span>
+              <span>تکمیل فرم هر درخواست</span>
+              <span>ارسال نتیجه برای مرحله بعد</span>
             </div>
           </aside>
 
