@@ -143,7 +143,31 @@ export default function Home() {
             {message && <div className="notice error">{message}</div>}
 
             {loading ? (
-              <div className="empty-state">در حال دریافت درخواست‌ها...</div>
+              <div className="task-list" aria-hidden="true">
+                {[1, 2].map((item) => (
+                  <article className="task-card task-card--loading" key={item}>
+                    <div className="task-card-header">
+                      <div className="task-title-block">
+                        <span className="task-index skeleton-index" />
+                        <div className="task-heading-skeleton">
+                          <span className="skeleton-line tiny" />
+                          <span className="skeleton-line title" />
+                        </div>
+                      </div>
+                      <span className="status-pill status-pill--loading">در حال دریافت</span>
+                    </div>
+                    <div className="task-skeleton">
+                      <div className="skeleton-grid">
+                        <span className="skeleton-line medium" />
+                        <span className="skeleton-line short" />
+                      </div>
+                      <span className="skeleton-input" />
+                      <span className="skeleton-input" />
+                      <span className="skeleton-area" />
+                    </div>
+                  </article>
+                ))}
+              </div>
             ) : tasks.length === 0 ? (
               <div className="empty-state">
                 <strong>درخواستی برای اقدام وجود ندارد.</strong>

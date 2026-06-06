@@ -374,11 +374,23 @@ h3 {
 .task-card {
   position: relative;
   min-width: 0;
+  min-height: 220px;
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   overflow: visible;
+}
+
+.task-card--loading {
+  pointer-events: none;
+}
+
+.task-card--error {
+  border-color: #ffc8c1;
+  background:
+    linear-gradient(135deg, rgba(180, 35, 24, 0.04), transparent 45%),
+    var(--surface);
 }
 
 .task-title-block {
@@ -400,14 +412,39 @@ h3 {
   font-weight: 900;
 }
 
+.skeleton-index {
+  color: transparent;
+  background: linear-gradient(90deg, #f5edf6, #fff8fd, #f5edf6);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
 .status-pill {
   white-space: nowrap;
   padding: 7px 10px;
   border-radius: 999px;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
   font-size: 12px;
   font-weight: 800;
+}
+
+.status-pill--ready {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.status-pill--submitting {
+  color: #3a3a3a;
+  background: #eee9f0;
+}
+
+.status-pill--loading {
+  color: #766c7d;
+  background: #f3edf5;
+}
+
+.status-pill--error {
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .notice,
@@ -443,17 +480,73 @@ h3 {
   min-height: 86px;
 }
 
-.form-skeleton {
+.task-skeleton {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  min-height: 300px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
 }
 
-.form-skeleton span {
-  height: 48px;
+.task-heading-skeleton {
+  display: grid;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 0.72fr;
+  gap: 14px;
+}
+
+.skeleton-line,
+.skeleton-input,
+.skeleton-area,
+.skeleton-button {
+  display: block;
   border-radius: var(--radius);
-  background: linear-gradient(90deg, #eef3f1, #f8faf9, #eef3f1);
+  background: linear-gradient(90deg, #f5edf6, #fff8fd, #f5edf6);
   background-size: 220% 100%;
   animation: shimmer 1.4s infinite linear;
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line.tiny {
+  width: 64px;
+  height: 10px;
+}
+
+.skeleton-line.title {
+  width: 190px;
+  height: 20px;
+}
+
+.skeleton-line.medium {
+  width: 70%;
+}
+
+.skeleton-line.short {
+  width: 42%;
+}
+
+.skeleton-input {
+  height: 48px;
+}
+
+.skeleton-area {
+  min-height: 112px;
+}
+
+.skeleton-button {
+  width: 220px;
+  height: 44px;
+  justify-self: end;
 }
 
 .native-form {
@@ -597,6 +690,14 @@ h3 {
 
   .scenario-panel {
     position: static;
+  }
+
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-button {
+    width: 100%;
   }
 }
 

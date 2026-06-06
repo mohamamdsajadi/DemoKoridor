@@ -17,6 +17,21 @@ export default function Task({ taskId, order, onDone }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const hasError = Boolean(error);
+  const isUnavailable = !loading && !task;
+  const state = loading
+    ? "loading"
+    : hasError || isUnavailable
+      ? "error"
+      : submitting
+        ? "submitting"
+        : "ready";
+  const statusLabel = {
+    loading: "در حال دریافت",
+    ready: "آماده اقدام",
+    submitting: "در حال ارسال",
+    error: "نیازمند بررسی"
+  }[state];
 
   const completeTask = useCallback(async (data) => {
     setSubmitting(true);
@@ -50,7 +65,11 @@ export default function Task({ taskId, order, onDone }) {
         const response = await fetch(`/api/tasks/${taskId}`);
 
         if (!response.ok) {
-          throw new Error(`خطا در دریافت اطلاعات: ${response.status}`);
+          throw new Error(
+            response.status === 404
+              ? "این درخواست دیگر در صف فعال نیست یا اطلاعات فرم آن در دسترس نیست."
+              : `دریافت اطلاعات درخواست ناموفق بود: ${response.status}`
+          );
         }
 
         const text = await response.text();
@@ -75,26 +94,26 @@ export default function Task({ taskId, order, onDone }) {
   }, [taskId]);
 
   return (
-    <article className="task-card">
+    <article className={`task-card task-card--${state}`}>
       <div className="task-card-header">
         <div className="task-title-block">
           <span className="task-index">{Number(order || 1).toLocaleString('fa-IR')}</span>
           <div>
-            <p className="eyebrow">مرحله فعال</p>
-            <h3>{task?.name || "در حال آماده‌سازی فرم"}</h3>
+            <p className="eyebrow">{state === "error" ? "وضعیت درخواست" : "مرحله فعال"}</p>
+            <h3>
+              {loading
+                ? "در حال دریافت اطلاعات"
+                : task?.name || "اطلاعات درخواست در دسترس نیست"}
+            </h3>
           </div>
         </div>
-        <span className="status-pill">{submitting ? "در حال ارسال" : "آماده اقدام"}</span>
+        <span className={`status-pill status-pill--${state}`}>{statusLabel}</span>
       </div>
 
       {error && <div className="notice error">{error}</div>}
 
       {loading ? (
-        <div className="form-skeleton">
-          <span />
-          <span />
-          <span />
-        </div>
+        <TaskSkeleton />
       ) : task ? (
         task.schema ? (
           <ProcessForm
@@ -116,4 +135,19 @@ export default function Task({ taskId, order, onDone }) {
       )}
     </article>
   )
+}
+
+function TaskSkeleton() {
+  return (
+    <div className="task-skeleton" aria-hidden="true">
+      <div className="skeleton-grid">
+        <span className="skeleton-line medium" />
+        <span className="skeleton-line short" />
+      </div>
+      <span className="skeleton-input" />
+      <span className="skeleton-input" />
+      <span className="skeleton-area" />
+      <span className="skeleton-button" />
+    </div>
+  );
 }
