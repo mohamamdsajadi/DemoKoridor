@@ -2,14 +2,11 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from "react";
-import { completeTask, fetchTask } from '../lib/tasks';
+import { getDisplayTaskTitle } from '../lib/display';
+import { completeTask, fetchTask, hasRenderableSchema } from '../lib/tasks';
 
 const ProcessForm = dynamic(
   () => import('./embedded-form'),
-  { ssr: false, loading: () => <TaskSkeleton /> }
-)
-const ReactForm = dynamic(
-  () => import('./react-form'),
   { ssr: false, loading: () => <TaskSkeleton /> }
 )
 
@@ -33,6 +30,10 @@ export default function Task({ taskId, order, onDone }) {
     submitting: "در حال ارسال",
     error: "نیازمند بررسی"
   }[state];
+  const fallbackTitle = "اطلاعات درخواست در دسترس نیست";
+  const title = loading
+    ? "در حال دریافت اطلاعات"
+    : getDisplayTaskTitle(task, fallbackTitle);
 
   const submitTask = useCallback(async (data) => {
     setSubmitting(true);
@@ -76,11 +77,7 @@ export default function Task({ taskId, order, onDone }) {
           <span className="task-index">{Number(order || 1).toLocaleString('fa-IR')}</span>
           <div>
             <p className="eyebrow">{state === "error" ? "وضعیت درخواست" : "مرحله فعال"}</p>
-            <h3>
-              {loading
-                ? "در حال دریافت اطلاعات"
-                : task?.name || "اطلاعات درخواست در دسترس نیست"}
-            </h3>
+            <h3>{title}</h3>
           </div>
         </div>
         <span className={`status-pill status-pill--${state}`}>{statusLabel}</span>
@@ -90,24 +87,15 @@ export default function Task({ taskId, order, onDone }) {
 
       {loading ? (
         <TaskSkeleton />
-      ) : task ? (
-        task.schema ? (
+      ) : hasRenderableSchema(task) ? (
           <ProcessForm
             schema={task.schema}
             data={task.data}
             onComplete={submitTask}
             submitting={submitting}
           />
-        ) : (
-          <ReactForm
-            formKey={task.formKey}
-            data={task.data}
-            onComplete={submitTask}
-            submitting={submitting}
-          />
-        )
       ) : (
-        <div className="empty-state compact">فرم این درخواست قابل نمایش نیست.</div>
+        <div className="empty-state compact">این درخواست در صف قابل نمایش نیست.</div>
       )}
     </article>
   )

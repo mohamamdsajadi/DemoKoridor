@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { getDisplayTaskTitle } from '../lib/display';
 
 export default function TaskSummaryCard({ task, order }) {
   const taskId = task?.id;
-  const title = task?.name || `درخواست شماره ${Number(order || 1).toLocaleString('fa-IR')}`;
+  const title = getDisplayTaskTitle(
+    task,
+    `درخواست شماره ${Number(order || 1).toLocaleString('fa-IR')}`
+  );
 
   return (
     <Link className="task-summary-card" href={`/tasks/${taskId}`}>

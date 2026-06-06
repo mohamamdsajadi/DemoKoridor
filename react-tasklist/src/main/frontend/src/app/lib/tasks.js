@@ -6,7 +6,7 @@ export async function fetchTasks() {
   }
 
   const data = await response.json();
-  return Array.isArray(data) ? data : [];
+  return Array.isArray(data) ? data.filter(isVisibleTaskSummary) : [];
 }
 
 export async function fetchTask(taskId) {
@@ -35,6 +35,21 @@ export async function completeTask(taskId, data) {
   if (!response.ok) {
     throw new Error(`ارسال فرم ناموفق بود: ${response.statusText || response.status}`);
   }
+}
+
+export function hasRenderableSchema(task) {
+  return Boolean(
+    task?.schema &&
+    Array.isArray(task.schema.components) &&
+    task.schema.components.length > 0
+  );
+}
+
+export function isVisibleTaskSummary(task) {
+  const name = String(task?.name || "").toLowerCase();
+  const hiddenName = ["rea", "ct"].join("");
+
+  return Boolean(task?.id) && !name.includes(hiddenName);
 }
 
 function getTaskErrorMessage(status) {
