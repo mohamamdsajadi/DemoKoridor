@@ -2,14 +2,15 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from "react";
+import { completeTask, fetchTask } from '../lib/tasks';
 
 const ProcessForm = dynamic(
   () => import('./embedded-form'),
-  { ssr: false }
+  { ssr: false, loading: () => <TaskSkeleton /> }
 )
 const ReactForm = dynamic(
   () => import('./react-form'),
-  { ssr: false }
+  { ssr: false, loading: () => <TaskSkeleton /> }
 )
 
 export default function Task({ taskId, order, onDone }) {
@@ -33,21 +34,12 @@ export default function Task({ taskId, order, onDone }) {
     error: "نیازمند بررسی"
   }[state];
 
-  const completeTask = useCallback(async (data) => {
+  const submitTask = useCallback(async (data) => {
     setSubmitting(true);
     setError("");
 
     try {
-      const r = await fetch(`/api/tasks/${taskId}/complete`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
-
-      if (!r.ok) {
-        throw new Error(`ارسال فرم ناموفق بود: ${r.statusText || r.status}`);
-      }
-
+      await completeTask(taskId, data);
       await onDone?.();
     } catch (err) {
       setError(err.message || "در ارسال اطلاعات خطایی رخ داد.");
@@ -57,29 +49,13 @@ export default function Task({ taskId, order, onDone }) {
   }, [onDone, taskId]);
 
   useEffect(() => {
-    const fetchTask = async () => {
+    const loadTask = async () => {
       setLoading(true);
       setError("");
+      setTask(undefined);
 
       try {
-        const response = await fetch(`/api/tasks/${taskId}`);
-
-        if (!response.ok) {
-          throw new Error(
-            response.status === 404
-              ? "این درخواست دیگر در صف فعال نیست یا اطلاعات فرم آن در دسترس نیست."
-              : `دریافت اطلاعات درخواست ناموفق بود: ${response.status}`
-          );
-        }
-
-        const text = await response.text();
-
-        if (!text) {
-          throw new Error("پاسخ دریافتی از سرور خالی است.");
-        }
-
-        const json = JSON.parse(text);
-        setTask(json);
+        setTask(await fetchTask(taskId));
 
       } catch (err) {
         setError(err.message || "خطایی در دریافت اطلاعات رخ داد.");
@@ -89,7 +65,7 @@ export default function Task({ taskId, order, onDone }) {
     };
 
     if (taskId) {
-      fetchTask();
+      loadTask();
     }
   }, [taskId]);
 
@@ -119,14 +95,14 @@ export default function Task({ taskId, order, onDone }) {
           <ProcessForm
             schema={task.schema}
             data={task.data}
-            onComplete={completeTask}
+            onComplete={submitTask}
             submitting={submitting}
           />
         ) : (
           <ReactForm
             formKey={task.formKey}
             data={task.data}
-            onComplete={completeTask}
+            onComplete={submitTask}
             submitting={submitting}
           />
         )

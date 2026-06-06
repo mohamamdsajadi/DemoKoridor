@@ -1,9 +1,8 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from "react";
-
-const Task = dynamic(() => import('./components/task'), { ssr: false });
+import TaskSummaryCard from './components/task-summary-card';
+import { fetchTasks } from './lib/tasks';
 
 export default function Home() {
   const [tasks, setTasks] = useState([]);
@@ -16,14 +15,7 @@ export default function Home() {
     setMessage("");
 
     try {
-      const r = await fetch('/api/tasks');
-
-      if (!r.ok) {
-        throw new Error("امکان دریافت فهرست درخواست‌ها وجود ندارد.");
-      }
-
-      const json = await r.json();
-      setTasks(Array.isArray(json) ? json : []);
+      setTasks(await fetchTasks());
     } catch (error) {
       setMessage(error.message || "خطایی در ارتباط با سرویس رخ داد.");
       setTasks([]);
@@ -145,25 +137,17 @@ export default function Home() {
             {loading ? (
               <div className="task-list" aria-hidden="true">
                 {[1, 2].map((item) => (
-                  <article className="task-card task-card--loading" key={item}>
-                    <div className="task-card-header">
-                      <div className="task-title-block">
-                        <span className="task-index skeleton-index" />
-                        <div className="task-heading-skeleton">
-                          <span className="skeleton-line tiny" />
-                          <span className="skeleton-line title" />
-                        </div>
+                  <article className="task-summary-card task-summary-card--loading" key={item}>
+                    <div className="task-summary-main">
+                      <span className="task-index skeleton-index" />
+                      <div className="task-heading-skeleton">
+                        <span className="skeleton-line tiny" />
+                        <span className="skeleton-line title" />
                       </div>
-                      <span className="status-pill status-pill--loading">در حال دریافت</span>
                     </div>
-                    <div className="task-skeleton">
-                      <div className="skeleton-grid">
-                        <span className="skeleton-line medium" />
-                        <span className="skeleton-line short" />
-                      </div>
-                      <span className="skeleton-input" />
-                      <span className="skeleton-input" />
-                      <span className="skeleton-area" />
+                    <div className="task-summary-side">
+                      <span className="status-pill status-pill--loading">در حال دریافت</span>
+                      <span className="skeleton-line tiny" />
                     </div>
                   </article>
                 ))}
@@ -176,11 +160,10 @@ export default function Home() {
             ) : (
               <div className="task-list">
                 {tasks.map((task, index) => (
-                  <Task
+                  <TaskSummaryCard
                     key={task.id}
-                    taskId={task.id}
+                    task={task}
                     order={index + 1}
-                    onDone={loadTasks}
                   />
                 ))}
               </div>
