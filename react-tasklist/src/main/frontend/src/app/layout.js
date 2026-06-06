@@ -1,17 +1,16 @@
-import { Inter } from 'next/font/google'
+import '@bpmn-io/form-js-viewer/dist/assets/form-js.css'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import './styles/embedded-form-override.css'
 
 export const metadata = {
-  title: 'Tasklist App',
-  description: 'Super nice Tasklist app',
+  title: 'میز کار درخواست‌ها',
+  description: 'دموی مدیریت و تکمیل درخواست‌ها',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="fa" dir="rtl">
+      <body>{children}</body>
     </html>
   )
 }
