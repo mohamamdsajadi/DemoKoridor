@@ -1,15 +1,23 @@
+
 tasklist:
   client:
-    profile: simple
+    profile: oidc
+    base-url: https://parand.mparsict.com
+    auth-url: https://keycloack.parand.mparsict.com/auth/realms/camunda-platform/protocol/openid-connect/token
+    client-id: orchestration
+    client-secret: secret
+    audience: orchestration
+
 camunda:
   webhook:
-    url: http://localhost:8085/inbound
+    url: http://46.245.79.18:8086/inbound
     authorization:
-      username: demo
-      password: demo
+      username: "semati"
+      password: "semati"
   client:
     mode: self-managed
-    zeebe:
-      enabled: true
-      grpc-address: http://localhost:26500
-      rest-address: http://localhost:8088
+    grpc-address: http://46.245.79.18:26500
+    rest-address: https://parand.mparsict.com
+    enabled: true
+server:
+  port: 8020
