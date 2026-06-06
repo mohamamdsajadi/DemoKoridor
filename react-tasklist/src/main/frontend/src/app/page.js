@@ -62,15 +62,34 @@ export default function Home() {
   return (
     <main className="app-shell">
       <section className="workspace">
+        <nav className="brand-nav" aria-label="ناوبری اصلی">
+          <a className="nav-brand" href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">
+            <img src="/brand/mehrpars-purple.svg" alt="لوگوی مهرپارس" />
+            <span>
+              <strong>مهرپارس</strong>
+              <small>پنل فرایندهای سازمانی</small>
+            </span>
+          </a>
+          <div className="nav-links" aria-label="دسترسی سریع">
+            <a href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">mehrparsict.com</a>
+            <span>دانش‌بنیان</span>
+            <span>رتبه ۲ انفورماتیک</span>
+          </div>
+        </nav>
+
         <header className="hero-panel">
           <div className="brand-block">
-            <div className="brand-mark" aria-hidden="true">در</div>
             <div>
-              <p className="eyebrow">دموی سناریوی فرایندی</p>
-              <h1>میز کار درخواست‌ها</h1>
+              <p className="eyebrow">Mehrpars Enterprise Workflow</p>
+              <h1>میز عملیات سازمانی</h1>
               <p className="hero-copy">
-                ثبت، بررسی و تکمیل درخواست‌ها در یک نمای ساده، فارسی و آماده ارائه.
+                تجربه‌ای فارسی، راست‌چین و آماده ارائه برای اجرای سناریوهای فرایندی، مدیریت درخواست‌ها و نمایش بلوغ محصولی مهرپارس.
               </p>
+              <div className="hero-badges" aria-label="حوزه‌های فعالیت">
+                <span>دولت الکترونیک</span>
+                <span>زیرساخت‌های ICT</span>
+                <span>امنیت و پایش</span>
+              </div>
             </div>
           </div>
 
@@ -95,12 +114,18 @@ export default function Home() {
             <p className="eyebrow">سناریوی جلسه</p>
             <h2>درخواست تأیید خرید</h2>
             <p>
-              این صفحه برای نمایش مسیر دریافت اطلاعات، تکمیل فرم و ارسال نتیجه طراحی شده است.
+              این سناریو نمایشی برای ثبت اطلاعات، تکمیل فرم و ارسال نتیجه در یک تجربه سازمانی تمیز و قابل ارائه طراحی شده است.
             </p>
             <div className="steps">
               <span>۱. ایجاد درخواست</span>
               <span>۲. بررسی اطلاعات</span>
               <span>۳. ارسال برای تصمیم‌گیری</span>
+            </div>
+            <div className="capability-list">
+              <strong>تمرکز دمو</strong>
+              <span>تجربه کاربری فارسی</span>
+              <span>فرم‌های سازمانی قابل توسعه</span>
+              <span>نمای عملیاتی مناسب جلسه</span>
             </div>
           </aside>
 
@@ -138,6 +163,23 @@ export default function Home() {
             )}
           </section>
         </div>
+
+        <footer className="brand-footer">
+          <div className="footer-brand">
+            <img src="/brand/mehrpars-white.svg" alt="لوگوی مهرپارس" />
+            <div>
+              <strong>شرکت مهندسی فناوری اطلاعات و ارتباطات مهرپارس</strong>
+              <p>
+                شرکت دانش‌بنیان خصوصی فعال در تولید زیرساخت‌های پیشرفته فناوری اطلاعات و ارتباطات.
+              </p>
+            </div>
+          </div>
+          <div className="footer-meta">
+            <span>info@mparsict.com</span>
+            <span>+۹۸۲۱-۹۱۶ ۹۰ ۷۴۷</span>
+            <a href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">mehrparsict.com</a>
+          </div>
+        </footer>
       </section>
     </main>
   );

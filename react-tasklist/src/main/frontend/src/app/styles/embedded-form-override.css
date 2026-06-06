@@ -1,14 +1,14 @@
 /* Embedded form presentation overrides */
 
 :root {
-  --cf-brand: #0f766e;
-  --cf-brand-dark: #0b5d56;
-  --cf-brand-light: #e0f2ef;
-  --cf-surface: #f7faf8;
+  --cf-brand: #e9019f;
+  --cf-brand-dark: #a10072;
+  --cf-brand-light: #fde8f6;
+  --cf-surface: #faf7fb;
   --cf-card: #ffffff;
-  --cf-border: #d8e1dd;
-  --cf-text: #17211d;
-  --cf-muted: #66746e;
+  --cf-border: #e5dbe9;
+  --cf-text: #25212a;
+  --cf-muted: #706878;
   --cf-radius: 8px;
 }
 
@@ -203,7 +203,7 @@
   padding: 0 !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: rgba(15, 118, 110, 0.12) !important;
+  background: rgba(233, 1, 159, 0.11) !important;
   color: var(--cf-brand-dark) !important;
   line-height: 0 !important;
   opacity: 0.75 !important;
