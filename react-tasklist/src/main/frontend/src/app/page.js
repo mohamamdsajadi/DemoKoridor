@@ -2,53 +2,85 @@
 
 import { useCallback, useEffect, useState } from "react";
 import TaskSummaryCard from './components/task-summary-card';
-import { fetchTasks } from './lib/tasks';
+import {
+  fetchProcessDefinitions,
+  fetchTasks,
+  startProcessInstance
+} from './lib/tasks';
 
 export default function Home() {
+  const [processDefinitions, setProcessDefinitions] = useState([]);
+  const [selectedProcessKey, setSelectedProcessKey] = useState("");
   const [tasks, setTasks] = useState([]);
   const [starting, setStarting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadingProcesses, setLoadingProcesses] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const [message, setMessage] = useState("");
+  const selectedProcess = processDefinitions.find(
+    (processDefinition) => processDefinition.processDefinitionKey === selectedProcessKey
+  );
 
   const loadTasks = useCallback(async () => {
-    setLoading(true);
+    setLoadingTasks(true);
     setMessage("");
 
     try {
-      setTasks(await fetchTasks());
+      setTasks(await fetchTasks(selectedProcessKey));
     } catch (error) {
       setMessage(error.message || "خطایی در ارتباط با سرویس رخ داد.");
       setTasks([]);
     } finally {
-      setLoading(false);
+      setLoadingTasks(false);
+    }
+  }, [selectedProcessKey]);
+
+  const loadProcessDefinitions = useCallback(async () => {
+    setLoadingProcesses(true);
+    setMessage("");
+
+    try {
+      const items = await fetchProcessDefinitions();
+      setProcessDefinitions(items);
+      setSelectedProcessKey((current) => current || items[0]?.processDefinitionKey || "");
+    } catch (error) {
+      setMessage(error.message || "دریافت فرایندها با خطا روبه‌رو شد.");
+      setProcessDefinitions([]);
+      setSelectedProcessKey("");
+    } finally {
+      setLoadingProcesses(false);
     }
   }, []);
 
   const startProcess = async () => {
+    if (!selectedProcessKey) {
+      setMessage("برای شروع، ابتدا یک فرایند را انتخاب کنید.");
+      return;
+    }
+
     setStarting(true);
     setMessage("");
 
     try {
-      const r = await fetch("/api/start-process", {
-        method: "POST",
-        body: JSON.stringify({ foo: "bar" }),
-        headers: { "Content-Type": "application/json" }
-      });
-
-      if (!r.ok) {
-        throw new Error("شروع سناریوی جدید ناموفق بود.");
-      }
-
+      await startProcessInstance(selectedProcessKey);
       await loadTasks();
     } catch (error) {
-      setMessage(error.message || "شروع سناریو با خطا روبه‌رو شد.");
+      setMessage(error.message || "شروع فرایند با خطا روبه‌رو شد.");
     } finally {
       setStarting(false);
     }
   };
 
   useEffect(() => {
-    loadTasks();
+    loadProcessDefinitions();
+  }, [loadProcessDefinitions]);
+
+  useEffect(() => {
+    if (selectedProcessKey) {
+      loadTasks();
+    } else {
+      setTasks([]);
+      setLoadingTasks(false);
+    }
   }, [loadTasks]);
 
   return (
@@ -72,69 +104,107 @@ export default function Home() {
         <header className="hero-panel">
           <div className="brand-block">
             <div>
-              <p className="eyebrow">کارتابل سازمانی مهرپارس</p>
-              <h1>درخواست‌های جاری</h1>
+              <p className="eyebrow">کارتابل چندفرایندی مهرپارس</p>
+              <h1>فرایند را انتخاب کنید و کارها را جلو ببرید</h1>
               <p className="hero-copy">
-                درخواست‌های باز، فرم‌های در انتظار تکمیل و وضعیت اقدام‌ها در این بخش نمایش داده می‌شود.
+                ابتدا یکی از فرایندهای deploy شده را انتخاب کنید، instance جدید بسازید و سپس فرم‌های در انتظار همان فرایند را تکمیل کنید.
               </p>
               <div className="hero-badges" aria-label="حوزه‌های فعالیت">
-                <span>دولت الکترونیک</span>
-                <span>زیرساخت‌های ICT</span>
-                <span>امنیت و پایش</span>
+                <span>Process Definition</span>
+                <span>User Task</span>
+                <span>Embedded Form</span>
               </div>
             </div>
           </div>
 
           <div className="hero-actions">
             <div className="metric-card">
-              <span>در انتظار اقدام</span>
+              <span>کارهای این فرایند</span>
               <strong>{tasks.length.toLocaleString('fa-IR')}</strong>
             </div>
             <button
               className="primary-action"
               onClick={startProcess}
-              disabled={starting}
+              disabled={starting || loadingProcesses || !selectedProcessKey}
             >
               <span aria-hidden="true">+</span>
-              {starting ? 'در حال ایجاد...' : 'شروع سناریوی جدید'}
+              {starting ? 'در حال ایجاد...' : 'شروع فرایند انتخاب‌شده'}
             </button>
           </div>
         </header>
 
         <div className="content-grid">
           <aside className="scenario-panel">
-            <p className="eyebrow">سناریوی جلسه</p>
-            <h2>درخواست تأیید خرید</h2>
-            <p>
-              جریان نمونه برای بررسی درخواست خرید و ثبت اطلاعات مورد نیاز واحد مربوطه.
-            </p>
-            <div className="steps">
-              <span>۱. ایجاد درخواست</span>
-              <span>۲. بررسی اطلاعات</span>
-              <span>۳. ارسال برای تصمیم‌گیری</span>
+            <div className="panel-title-row">
+              <div>
+                <p className="eyebrow">فرایندهای قابل اجرا</p>
+                <h2>انتخاب فرایند</h2>
+              </div>
+              <button className="icon-action" onClick={loadProcessDefinitions} disabled={loadingProcesses} title="بروزرسانی فرایندها">
+                ↻
+              </button>
             </div>
+
+            {loadingProcesses ? (
+              <div className="process-list" aria-hidden="true">
+                {[1, 2, 3].map((item) => (
+                  <span className="process-option process-option--loading" key={item}>
+                    <span className="skeleton-line title" />
+                    <span className="skeleton-line tiny" />
+                  </span>
+                ))}
+              </div>
+            ) : processDefinitions.length === 0 ? (
+              <div className="empty-state compact">فرایندی برای نمایش پیدا نشد.</div>
+            ) : (
+              <div className="process-list" role="listbox" aria-label="فرایندها">
+                {processDefinitions.map((processDefinition) => {
+                  const title = processDefinition.name || processDefinition.processDefinitionId || processDefinition.resourceName || "فرایند بدون نام";
+                  const selected = processDefinition.processDefinitionKey === selectedProcessKey;
+
+                  return (
+                    <button
+                      className={`process-option${selected ? " process-option--selected" : ""}`}
+                      key={processDefinition.processDefinitionKey}
+                      onClick={() => setSelectedProcessKey(processDefinition.processDefinitionKey)}
+                      role="option"
+                      aria-selected={selected}
+                    >
+                      <strong>{title}</strong>
+                      <span>{processDefinition.processDefinitionId}</span>
+                      <small>
+                        نسخه {Number(processDefinition.version || 0).toLocaleString('fa-IR')}
+                        {' · '}
+                        key {processDefinition.processDefinitionKey}
+                      </small>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="capability-list">
-              <strong>تمرکز دمو</strong>
-              <span>نمایش صف درخواست‌ها</span>
-              <span>تکمیل فرم هر درخواست</span>
-              <span>ارسال نتیجه برای مرحله بعد</span>
+              <strong>فرایند انتخاب‌شده</strong>
+              <span>{selectedProcess?.name || selectedProcess?.processDefinitionId || "هنوز انتخاب نشده"}</span>
+              <span>{selectedProcess?.resourceName || "از سرور Camunda دریافت می‌شود"}</span>
+              <span>{selectedProcess?.tenantId || "<default>"}</span>
             </div>
           </aside>
 
           <section className="task-board" aria-live="polite">
             <div className="board-header">
               <div>
-                <p className="eyebrow">صف کار</p>
-                <h2>درخواست‌های قابل اقدام</h2>
+                <p className="eyebrow">صف کار فرایند</p>
+                <h2>{selectedProcess?.name || selectedProcess?.processDefinitionId || "درخواست‌های قابل اقدام"}</h2>
               </div>
-              <button className="ghost-action" onClick={loadTasks} disabled={loading}>
-                {loading ? 'در حال بروزرسانی' : 'بروزرسانی'}
+              <button className="ghost-action" onClick={loadTasks} disabled={loadingTasks || !selectedProcessKey}>
+                {loadingTasks ? 'در حال بروزرسانی' : 'بروزرسانی'}
               </button>
             </div>
 
             {message && <div className="notice error">{message}</div>}
 
-            {loading ? (
+            {loadingTasks ? (
               <div className="task-list" aria-hidden="true">
                 {[1, 2].map((item) => (
                   <article className="task-summary-card task-summary-card--loading" key={item}>
@@ -154,8 +224,8 @@ export default function Home() {
               </div>
             ) : tasks.length === 0 ? (
               <div className="empty-state">
-                <strong>درخواستی برای اقدام وجود ندارد.</strong>
-                <span>برای اجرای دمو، یک سناریوی جدید شروع کنید.</span>
+                <strong>کاری برای این فرایند وجود ندارد.</strong>
+                <span>یک instance جدید بسازید یا کمی بعد صف کار را بروزرسانی کنید.</span>
               </div>
             ) : (
               <div className="task-list">

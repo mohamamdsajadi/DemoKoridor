@@ -36,7 +36,7 @@ public class TaskService {
     try {
       Task task = camundaTaskListClient.getTask(id);
       Form form = null;
-      if (task.getFormKey().startsWith("camunda-forms:bpmn:")) {
+      if (task.getFormKey() != null && task.getFormKey().startsWith("camunda-forms:bpmn:")) {
         form = camundaTaskListClient.getForm(task.getFormKey(), task.getProcessDefinitionKey());
       }
       return map(task, form, task.getVariables());
@@ -45,9 +45,13 @@ public class TaskService {
     }
   }
 
-  public List<TaskOverviewDto> getTasks(boolean assignedOnly) {
+  public List<TaskOverviewDto> getTasks(boolean assignedOnly, String processDefinitionKey) {
     try {
-      return camundaTaskListClient.getTasks(new TaskSearch().setState(TaskState.CREATED).setAssigned(assignedOnly)).getItems().stream()
+      TaskSearch search = new TaskSearch().setState(TaskState.CREATED).setAssigned(assignedOnly);
+      if (processDefinitionKey != null && !processDefinitionKey.isBlank()) {
+        search.setProcessDefinitionKey(processDefinitionKey);
+      }
+      return camundaTaskListClient.getTasks(search).getItems().stream()
                                   .map(this::map)
                                   .toList();
     } catch (TaskListException e) {
@@ -56,7 +60,12 @@ public class TaskService {
   }
 
   private TaskOverviewDto map(Task task) {
-    return new TaskOverviewDto(task.getId(), task.getName());
+    return new TaskOverviewDto(
+        task.getId(),
+        task.getName(),
+        task.getProcessName(),
+        task.getProcessDefinitionKey(),
+        task.getProcessInstanceKey());
   }
 
   private TaskDto map(Task task, Form form, List<Variable> variables) {
@@ -66,7 +75,7 @@ public class TaskService {
         schema = objectMapper.readValue(form.getSchema(), new TypeReference<>() {});
       }
       Map<String, Object> data =
-          variables.stream()
+          (variables == null ? List.<Variable>of() : variables).stream()
               .map(v -> Map.entry(v.getName(), v.getValue()))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       return new TaskDto(task.getId(), task.getName(), schema, data, task.getFormKey());

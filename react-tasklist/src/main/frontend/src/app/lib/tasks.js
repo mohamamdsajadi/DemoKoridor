@@ -1,5 +1,35 @@
-export async function fetchTasks() {
-  const response = await fetch('/api/tasks');
+export async function fetchProcessDefinitions() {
+  const response = await fetch('/api/process-definitions');
+
+  if (!response.ok) {
+    throw new Error("امکان دریافت فهرست فرایندها وجود ندارد.");
+  }
+
+  const data = await response.json();
+  return Array.isArray(data) ? data.filter((item) => item?.processDefinitionKey) : [];
+}
+
+export async function startProcessInstance(processDefinitionKey, variables = {}) {
+  const response = await fetch("/api/process-instances", {
+    method: "POST",
+    body: JSON.stringify({ processDefinitionKey, variables }),
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error("شروع فرایند انتخاب‌شده ناموفق بود.");
+  }
+
+  return response.json();
+}
+
+export async function fetchTasks(processDefinitionKey) {
+  const params = new URLSearchParams();
+  if (processDefinitionKey) {
+    params.set("processDefinitionKey", processDefinitionKey);
+  }
+
+  const response = await fetch(`/api/tasks${params.toString() ? `?${params}` : ""}`);
 
   if (!response.ok) {
     throw new Error("امکان دریافت فهرست درخواست‌ها وجود ندارد.");

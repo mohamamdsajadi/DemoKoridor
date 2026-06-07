@@ -44,9 +44,11 @@ public class TasklistController {
   }
 
   @GetMapping("/tasks")
-  public ResponseEntity<List<TaskOverviewDto>> getTasks(@RequestParam(value = "assignedOnly",required = false,defaultValue = "true")boolean assignedOnly) {
+  public ResponseEntity<List<TaskOverviewDto>> getTasks(
+      @RequestParam(value = "assignedOnly", required = false, defaultValue = "true") boolean assignedOnly,
+      @RequestParam(value = "processDefinitionKey", required = false) String processDefinitionKey) {
 
-    return ResponseEntity.ok(taskService.getTasks(assignedOnly));
+    return ResponseEntity.ok(taskService.getTasks(assignedOnly, processDefinitionKey));
   }
 
   @PatchMapping("/tasks/{id}/complete")
