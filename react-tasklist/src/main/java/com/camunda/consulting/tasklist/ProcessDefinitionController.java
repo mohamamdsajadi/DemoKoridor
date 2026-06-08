@@ -28,6 +28,11 @@ public class ProcessDefinitionController {
 
   @GetMapping("/process-definitions")
   public ResponseEntity<List<ProcessDefinitionDto>> getProcessDefinitions() {
+    return searchProcessDefinitions();
+  }
+
+  @PostMapping("/process-definitions/search")
+  public ResponseEntity<List<ProcessDefinitionDto>> searchProcessDefinitions() {
     try {
       return ResponseEntity.ok(processDefinitionService.getStartableProcessDefinitions());
     } catch (Exception e) {

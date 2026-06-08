@@ -1,13 +1,18 @@
 'use client'
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import TaskDetail from '../../components/task';
 
 export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const taskId = params?.taskId;
+  const processDefinitionKey = searchParams.get('processDefinitionKey');
+  const backHref = processDefinitionKey
+    ? `/processes/${encodeURIComponent(processDefinitionKey)}/tasks`
+    : '/';
 
   return (
     <main className="app-shell">
@@ -21,7 +26,7 @@ export default function TaskDetailPage() {
             </span>
           </Link>
           <div className="nav-links" aria-label="دسترسی سریع">
-            <Link href="/">بازگشت به صف کار</Link>
+            <Link href={backHref}>بازگشت به صف کار</Link>
             <span>فرم سازمانی</span>
           </div>
         </nav>
@@ -35,13 +40,13 @@ export default function TaskDetailPage() {
                 فرم را تکمیل کنید و نتیجه بررسی را ثبت کنید.
               </p>
             </div>
-            <Link className="ghost-action" href="/">بازگشت</Link>
+            <Link className="ghost-action" href={backHref}>بازگشت</Link>
           </div>
 
           <TaskDetail
             taskId={taskId}
             order={1}
-            onDone={() => router.push('/')}
+            onDone={() => router.push(backHref)}
           />
         </section>
       </section>

@@ -1,5 +1,5 @@
 export async function fetchProcessDefinitions() {
-  const response = await fetch('/api/process-definitions');
+  const response = await appPost("/api/process-definitions/search", {});
 
   if (!response.ok) {
     throw new Error("امکان دریافت فهرست فرایندها وجود ندارد.");
@@ -10,10 +10,9 @@ export async function fetchProcessDefinitions() {
 }
 
 export async function startProcessInstance(processDefinitionKey, variables = {}) {
-  const response = await fetch("/api/process-instances", {
-    method: "POST",
-    body: JSON.stringify({ processDefinitionKey, variables }),
-    headers: { "Content-Type": "application/json" }
+  const response = await appPost("/api/process-instances", {
+    processDefinitionKey,
+    variables
   });
 
   if (!response.ok) {
@@ -24,12 +23,24 @@ export async function startProcessInstance(processDefinitionKey, variables = {})
 }
 
 export async function fetchTasks(processDefinitionKey) {
-  const params = new URLSearchParams();
-  if (processDefinitionKey) {
-    params.set("processDefinitionKey", processDefinitionKey);
-  }
-
-  const response = await fetch(`/api/tasks${params.toString() ? `?${params}` : ""}`);
+  const response = await appPost("/api/user-tasks/search", {
+    sort: [
+      {
+        field: "creationDate",
+        order: "desc"
+      }
+    ],
+    page: {
+      limit: 50,
+      from: 0
+    },
+    filter: {
+      processDefinitionKey,
+      state: {
+        $in: ["CREATED", "ASSIGNING", "UPDATING", "COMPLETING", "CANCELING"]
+      }
+    }
+  });
 
   if (!response.ok) {
     throw new Error("امکان دریافت فهرست درخواست‌ها وجود ندارد.");
@@ -40,7 +51,7 @@ export async function fetchTasks(processDefinitionKey) {
 }
 
 export async function fetchTask(taskId) {
-  const response = await fetch(`/api/tasks/${taskId}`);
+  const response = await fetch(`/api/user-tasks/${taskId}/form`);
 
   if (!response.ok) {
     throw new Error(getTaskErrorMessage(response.status));
@@ -56,14 +67,15 @@ export async function fetchTask(taskId) {
 }
 
 export async function completeTask(taskId, data) {
-  const response = await fetch(`/api/tasks/${taskId}/complete`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
+  const response = await fetch(`/api/user-tasks/${taskId}/completion`, {
+    method: "POST",
+    body: JSON.stringify({ variables: data || {} }),
     headers: { "Content-Type": "application/json" }
   });
 
   if (!response.ok) {
-    throw new Error(`ارسال فرم ناموفق بود: ${response.statusText || response.status}`);
+    const details = await response.text();
+    throw new Error(details || `ارسال فرم ناموفق بود: ${response.statusText || response.status}`);
   }
 }
 
@@ -80,6 +92,14 @@ export function isVisibleTaskSummary(task) {
   const hiddenName = ["rea", "ct"].join("");
 
   return Boolean(task?.id) && !name.includes(hiddenName);
+}
+
+function appPost(path, body) {
+  return fetch(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" }
+  });
 }
 
 function getTaskErrorMessage(status) {

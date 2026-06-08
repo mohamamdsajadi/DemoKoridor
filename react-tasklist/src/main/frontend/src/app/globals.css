@@ -463,10 +463,118 @@ h3 {
   line-height: 1.7;
 }
 
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 14px;
+}
+
+.process-card {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(36, 28, 42, 0.06);
+}
+
+.process-card--loading {
+  pointer-events: none;
+}
+
+.process-card-head,
+.process-actions,
+.header-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.process-card-head h3 {
+  overflow-wrap: anywhere;
+}
+
+.process-meta {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.process-meta div,
+.process-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.process-meta dt {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.process-meta dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--graphite);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-align: left;
+  direction: ltr;
+}
+
+.process-actions {
+  align-items: stretch;
+}
+
+.process-actions .primary-action,
+.process-actions .ghost-action {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.header-actions {
+  flex: 0 0 auto;
+}
+
+.header-actions .primary-action,
+.header-actions .ghost-action {
+  width: auto;
+  min-width: 150px;
+}
+
+.process-context {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.process-context span {
+  direction: ltr;
+}
+
 .task-board {
   min-width: 0;
   padding: 22px;
   overflow: visible;
+}
+
+.process-board {
+  margin-top: 22px;
 }
 
 .board-header,
@@ -877,12 +985,16 @@ h3 {
   .brand-nav,
   .brand-footer,
   .board-header,
+  .header-actions,
+  .process-actions,
   .task-card-header {
     grid-template-columns: 1fr;
     flex-direction: column;
   }
 
   .hero-actions,
+  .header-actions,
+  .process-actions,
   .nav-links,
   .footer-meta {
     width: 100%;
