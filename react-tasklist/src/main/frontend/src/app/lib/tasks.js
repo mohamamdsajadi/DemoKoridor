@@ -9,6 +9,14 @@ export async function fetchProcessDefinitions() {
   return Array.isArray(data) ? data.filter((item) => item?.processDefinitionKey) : [];
 }
 
+const ACTIVE_TASK_STATES = [
+  "CREATED",
+  "ASSIGNING",
+  "UPDATING",
+  "COMPLETING",
+  "CANCELING"
+];
+
 export async function startProcessInstance(processDefinitionKey, variables = {}) {
   const response = await appPost("/api/process-instances", {
     processDefinitionKey,
@@ -37,13 +45,40 @@ export async function fetchTasks(processDefinitionKey) {
     filter: {
       processDefinitionKey,
       state: {
-        $in: ["CREATED", "ASSIGNING", "UPDATING", "COMPLETING", "CANCELING"]
+        $in: ACTIVE_TASK_STATES
       }
     }
   });
 
   if (!response.ok) {
     throw new Error("امکان دریافت فهرست درخواست‌ها وجود ندارد.");
+  }
+
+  const data = await response.json();
+  return Array.isArray(data) ? data.filter(isVisibleTaskSummary) : [];
+}
+
+export async function fetchAllTasks() {
+  const response = await appPost("/api/user-tasks/search", {
+    sort: [
+      {
+        field: "creationDate",
+        order: "desc"
+      }
+    ],
+    page: {
+      limit: 50,
+      from: 0
+    },
+    filter: {
+      state: {
+        $in: ACTIVE_TASK_STATES
+      }
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("امکان دریافت کارهای فعال وجود ندارد.");
   }
 
   const data = await response.json();

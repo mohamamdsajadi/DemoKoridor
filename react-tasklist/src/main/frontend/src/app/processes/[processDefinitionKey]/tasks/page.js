@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import AppShell from '../../../components/app-shell';
 import TaskSummaryCard from '../../../components/task-summary-card';
+import {
+  formatFaNumber,
+  getProcessSubtitle,
+  getProcessTitle
+} from '../../../lib/display';
 import {
   fetchProcessDefinitions,
   fetchTasks,
@@ -84,10 +90,10 @@ export default function ProcessTasksPage() {
         }
       }
 
-      setMessage("فرایند شروع شد، اما تسک جدید هنوز در Tasklist آماده نشده است. چند لحظه دیگر بروزرسانی کنید.");
+      setMessage("فرایند شروع شد، اما کار جدید هنوز در صف عملیاتی آماده نشده است. چند لحظه دیگر بروزرسانی کنید.");
       return [];
     } catch (error) {
-      setMessage(error.message || "دریافت تسک جدید با خطا روبه‌رو شد.");
+      setMessage(error.message || "دریافت کار جدید با خطا روبه‌رو شد.");
       return [];
     } finally {
       setLoadingTasks(false);
@@ -126,99 +132,97 @@ export default function ProcessTasksPage() {
     }
   }, [processDefinitionKey, startedInstanceKey, waitForStartedTask]);
 
-  const title = getProcessTitle(processDefinition) || "تسک‌های فرایند";
+  const title = loadingProcess
+    ? "در حال دریافت فرایند"
+    : getProcessTitle(processDefinition, "صف کار فرایند");
 
   return (
-    <main className="app-shell">
-      <section className="workspace">
-        <nav className="brand-nav" aria-label="ناوبری اصلی">
-          <Link className="nav-brand" href="/">
-            <img src="/brand/mehrpars-purple.svg" alt="لوگوی مهرپارس" />
-            <span>
-              <strong>مهرپارس</strong>
-              <small>تسک‌های فرایند</small>
-            </span>
-          </Link>
-          <div className="nav-links" aria-label="دسترسی سریع">
-            <Link href="/">همه فرایندها</Link>
-            <span>سطح دوم</span>
-          </div>
-        </nav>
-
-        <section className="detail-shell">
-          <div className="detail-header">
-            <div>
-              <p className="eyebrow">صف کار فرایند</p>
-              <h1>{loadingProcess ? "در حال دریافت فرایند" : title}</h1>
-              <p className="hero-copy">
-                تسک‌ها با فیلتر processDefinitionKey همین فرایند دریافت می‌شوند.
-              </p>
-            </div>
-            <div className="header-actions">
-              <button className="primary-action" onClick={startProcess} disabled={starting || !processDefinitionKey}>
-                <span aria-hidden="true">+</span>
-                {starting ? 'در حال شروع...' : 'شروع instance جدید'}
-              </button>
-              <button className="ghost-action" onClick={loadTasks} disabled={loadingTasks || !processDefinitionKey}>
-                {loadingTasks ? 'در حال بروزرسانی' : 'بروزرسانی تسک‌ها'}
-              </button>
-            </div>
-          </div>
-
-          <div className="process-context">
-            <span>Key: {processDefinitionKey || '-'}</span>
-            <span>ID: {processDefinition?.processDefinitionId || '-'}</span>
-            <span>Version: {processDefinition?.version ? Number(processDefinition.version).toLocaleString('fa-IR') : '-'}</span>
-          </div>
-
-          {message && <div className="notice error">{message}</div>}
-
-          {loadingTasks ? (
-            <div className="task-list" aria-hidden="true">
-              {[1, 2, 3].map((item) => (
-                <article className="task-summary-card task-summary-card--loading" key={item}>
-                  <div className="task-summary-main">
-                    <span className="task-index skeleton-index" />
-                    <div className="task-heading-skeleton">
-                      <span className="skeleton-line tiny" />
-                      <span className="skeleton-line title" />
-                    </div>
-                  </div>
-                  <div className="task-summary-side">
-                    <span className="status-pill status-pill--loading">در حال دریافت</span>
-                    <span className="skeleton-line tiny" />
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="empty-state">
-              <strong>تسکی برای این فرایند وجود ندارد.</strong>
-              <span>یک instance جدید شروع کنید یا چند لحظه بعد صف کار را بروزرسانی کنید.</span>
-            </div>
-          ) : (
-            <div className="task-list">
-              {tasks.map((task, index) => (
-                <TaskSummaryCard
-                  key={task.id}
-                  task={task}
-                  order={index + 1}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+    <AppShell
+      active="processes"
+      title={title}
+      eyebrow="صف کار فرایند"
+      subtitle={getProcessSubtitle(processDefinition)}
+      contextItems={[
+        `کلید اجرا: ${processDefinitionKey || '-'}`,
+        `نسخه: ${processDefinition?.version ? Number(processDefinition.version).toLocaleString('fa-IR') : '-'}`,
+        `کارهای فعال: ${formatFaNumber(tasks.length)}`
+      ]}
+      actions={(
+        <>
+          <button className="primary-action" onClick={startProcess} disabled={starting || !processDefinitionKey}>
+            {starting ? 'در حال شروع...' : 'شروع پرونده جدید'}
+          </button>
+          <button className="ghost-action" onClick={loadTasks} disabled={loadingTasks || !processDefinitionKey}>
+            {loadingTasks ? 'در حال بروزرسانی' : 'بروزرسانی صف'}
+          </button>
+        </>
+      )}
+    >
+      <section className="workflow-panel">
+        <div className="workflow-step workflow-step--done">
+          <span>۱</span>
+          <strong>فرایند انتخاب شد</strong>
+          <small>پرونده از تعریف فعال شروع می‌شود.</small>
+        </div>
+        <div className="workflow-step workflow-step--active">
+          <span>۲</span>
+          <strong>کارها در صف</strong>
+          <small>کارهای انسانی همین فرایند دریافت می‌شوند.</small>
+        </div>
+        <div className="workflow-step">
+          <span>۳</span>
+          <strong>فرم مرحله</strong>
+          <small>هر کار با فرم خودش تکمیل و ثبت می‌شود.</small>
+        </div>
       </section>
-    </main>
-  );
-}
 
-function getProcessTitle(processDefinition) {
-  return (
-    processDefinition?.name ||
-    processDefinition?.processDefinitionId ||
-    processDefinition?.resourceName ||
-    ""
+      <section className="panel-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">صف کارشناسان</p>
+            <h2>کارهای فعال این فرایند</h2>
+          </div>
+          <Link className="text-action" href="/">بازگشت به داشبورد فرایندها</Link>
+        </div>
+
+        {message && <div className="notice error">{message}</div>}
+
+        {loadingTasks ? (
+          <div className="task-list" aria-hidden="true">
+            {[1, 2, 3].map((item) => (
+              <article className="task-summary-card task-summary-card--loading" key={item}>
+                <div className="task-summary-main">
+                  <span className="task-index skeleton-index" />
+                  <div className="task-heading-skeleton">
+                    <span className="skeleton-line tiny" />
+                    <span className="skeleton-line title" />
+                  </div>
+                </div>
+                <div className="task-summary-side">
+                  <span className="status-pill status-pill--loading">در حال دریافت</span>
+                  <span className="skeleton-line tiny" />
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="empty-state">
+            <strong>کاری برای این فرایند وجود ندارد.</strong>
+            <span>یک پرونده جدید شروع کنید یا چند لحظه بعد صف کار را بروزرسانی کنید.</span>
+          </div>
+        ) : (
+          <div className="task-list">
+            {tasks.map((task, index) => (
+              <TaskSummaryCard
+                key={task.id}
+                task={task}
+                order={index + 1}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </AppShell>
   );
 }
 

@@ -2,7 +2,10 @@
 
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from "react";
-import { getDisplayTaskTitle } from '../lib/display';
+import {
+  formatCompactId,
+  getDisplayTaskTitle
+} from '../lib/display';
 import { completeTask, fetchTask, hasRenderableSchema } from '../lib/tasks';
 
 const ProcessForm = dynamic(
@@ -78,9 +81,18 @@ export default function Task({ taskId, order, onDone }) {
           <div>
             <p className="eyebrow">{state === "error" ? "وضعیت درخواست" : "مرحله فعال"}</p>
             <h3>{title}</h3>
+            <p className="task-card-copy">
+              {taskId ? `شناسه کار: ${formatCompactId(taskId)}` : "شناسه کار در دسترس نیست"}
+            </p>
           </div>
         </div>
         <span className={`status-pill status-pill--${state}`}>{statusLabel}</span>
+      </div>
+
+      <div className="task-workflow-note">
+        <span>۱. دریافت اطلاعات</span>
+        <span>۲. تکمیل فرم مرحله</span>
+        <span>۳. ثبت نتیجه و بازگشت به صف</span>
       </div>
 
       {error && <div className="notice error">{error}</div>}
@@ -88,12 +100,23 @@ export default function Task({ taskId, order, onDone }) {
       {loading ? (
         <TaskSkeleton />
       ) : hasRenderableSchema(task) ? (
+        <div className="form-stage">
+          <div className="form-stage-header">
+            <div>
+              <p className="eyebrow">فرم عملیاتی</p>
+              <h4>اطلاعات لازم برای تکمیل این مرحله</h4>
+            </div>
+            <span className="status-pill status-pill--ready">
+              {submitting ? "در حال ثبت" : "قابل ثبت"}
+            </span>
+          </div>
           <ProcessForm
             schema={task.schema}
             data={task.data}
             onComplete={submitTask}
             submitting={submitting}
           />
+        </div>
       ) : (
         <div className="empty-state compact">این درخواست در صف قابل نمایش نیست.</div>
       )}

@@ -1,5 +1,10 @@
 import Link from 'next/link';
-import { getDisplayTaskTitle } from '../lib/display';
+import {
+  formatCompactId,
+  getDisplayTaskTitle,
+  getTaskReference,
+  getTaskSubtitle
+} from '../lib/display';
 
 export default function TaskSummaryCard({ task, order }) {
   const taskId = task?.id;
@@ -17,18 +22,17 @@ export default function TaskSummaryCard({ task, order }) {
       <div className="task-summary-main">
         <span className="task-index">{Number(order || 1).toLocaleString('fa-IR')}</span>
         <div>
-          <p className="eyebrow">در انتظار اقدام</p>
+          <p className="eyebrow">{getTaskReference(task)}</p>
           <h3>{title}</h3>
           <p className="summary-copy">
-            {task?.processInstanceKey
-              ? `Instance ${task.processInstanceKey}`
-              : "برای تکمیل فرم، درخواست را باز کنید."}
+            {getTaskSubtitle(task)}
           </p>
         </div>
       </div>
       <div className="task-summary-side">
         <span className="status-pill status-pill--ready">آماده اقدام</span>
-        <span className="open-indicator">مشاهده</span>
+        <span className="task-meta-chip">کار {formatCompactId(taskId)}</span>
+        <span className="open-indicator">باز کردن فرم</span>
       </div>
     </Link>
   );
