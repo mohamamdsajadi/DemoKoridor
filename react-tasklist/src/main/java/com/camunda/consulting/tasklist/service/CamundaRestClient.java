@@ -59,8 +59,16 @@ public class CamundaRestClient {
     return post("/v2/user-tasks/search", body);
   }
 
+  public JsonNode getUserTask(String userTaskKey) {
+    return get("/v2/user-tasks/" + userTaskKey);
+  }
+
   public JsonNode getUserTaskForm(String userTaskKey) {
     return get("/v2/user-tasks/" + userTaskKey + "/form");
+  }
+
+  public JsonNode searchUserTaskVariables(String userTaskKey) {
+    return post("/v2/user-tasks/" + userTaskKey + "/variables/search", Map.of("page", page()));
   }
 
   public void completeUserTask(String userTaskKey, Map<String, Object> completionRequest) {
