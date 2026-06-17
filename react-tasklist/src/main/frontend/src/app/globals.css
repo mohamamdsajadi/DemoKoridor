@@ -1163,3 +1163,121 @@ h4 {
     justify-self: start;
   }
 }
+
+.evaluation-review-form {
+  display: grid;
+  gap: 16px;
+}
+
+.review-intro,
+.review-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.review-field-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-field-row {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.review-field-main {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.review-field-key {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.review-field-main strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.review-choice--selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+
+.review-choice input {
+  accent-color: var(--primary);
+}
+
+@media (max-width: 860px) {
+  .review-intro,
+  .review-field-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+.review-field-controls {
+  display: grid;
+  min-width: min(100%, 420px);
+  gap: 10px;
+}
+
+.review-comment-field {
+  display: grid;
+  gap: 6px;
+}
+
+.review-comment-field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.review-comment-field textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.8;
+  outline: none;
+}
+
+.review-comment-field textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}

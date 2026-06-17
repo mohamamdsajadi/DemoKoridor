@@ -10,8 +10,8 @@ import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.dto.Form;
 import io.camunda.tasklist.dto.Task;
 import io.camunda.tasklist.dto.Variable;
-import io.camunda.tasklist.exception.TaskListException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TaskService {
   private static final Logger LOG = LoggerFactory.getLogger(TaskService.class);
+  private static final String EVALUATION_REVIEW_TASK_NAME = "بازبینی توسط کارشناس";
   private final ObjectMapper objectMapper;
   private final CamundaTaskListClient camundaTaskListClient;
   private final CamundaRestClient camundaRestClient;
@@ -36,15 +37,23 @@ public class TaskService {
   }
 
   public TaskDto getTask(String id) {
+    JsonNode task = camundaRestClient.getUserTask(id);
+    String taskName = firstText(task, "name", "elementId", "id");
+    Map<String, Object> variables = getTaskVariables(id);
+
+    if (EVALUATION_REVIEW_TASK_NAME.equals(taskName)) {
+      return new TaskDto(id, taskName, null, variables, null);
+    }
+
     JsonNode form = camundaRestClient.getUserTaskForm(id);
     if (form == null || form.isMissingNode() || form.isNull()) {
       throw new RuntimeException("Task form was not found.");
     }
     return new TaskDto(
         id,
-        firstText(form, "formId", "formKey"),
+        taskName,
         parseFormSchema(form.path("schema")),
-        Map.of(),
+        variables,
         text(form, "formKey"));
   }
 
@@ -115,6 +124,38 @@ public class TaskService {
     }
     JsonNode value = node.path(fieldName);
     return value.isMissingNode() || value.isNull() ? null : value.asText();
+  }
+
+  private Map<String, Object> getTaskVariables(String id) {
+    JsonNode response = camundaRestClient.searchUserTaskVariables(id);
+    return mapVariables(response);
+  }
+
+  private Map<String, Object> mapVariables(JsonNode response) {
+    Map<String, Object> variables = new LinkedHashMap<>();
+    for (JsonNode item : items(response)) {
+      String name = text(item, "name");
+      if (name != null && !name.isBlank()) {
+        variables.put(name, variableValue(item));
+      }
+    }
+    return variables;
+  }
+
+  private Object variableValue(JsonNode variable) {
+    JsonNode value = variable.path("value");
+    if (value.isMissingNode() || value.isNull()) {
+      return null;
+    }
+    if (value.isTextual()) {
+      String rawValue = value.asText();
+      try {
+        return objectMapper.readValue(rawValue, new TypeReference<>() {});
+      } catch (JsonProcessingException ignored) {
+        return rawValue;
+      }
+    }
+    return objectMapper.convertValue(value, new TypeReference<>() {});
   }
 
   private Map<String, Object> parseFormSchema(JsonNode schema) {

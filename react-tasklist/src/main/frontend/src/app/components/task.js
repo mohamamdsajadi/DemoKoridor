@@ -6,7 +6,8 @@ import {
   formatCompactId,
   getDisplayTaskTitle
 } from '../lib/display';
-import { completeTask, fetchTask, hasRenderableSchema } from '../lib/tasks';
+import EvaluationReviewForm from './evaluation-review-form';
+import { completeTask, fetchTask, hasRenderableSchema, isEvaluationReviewTask } from '../lib/tasks';
 
 const ProcessForm = dynamic(
   () => import('./embedded-form'),
@@ -99,6 +100,14 @@ export default function Task({ taskId, order, onDone }) {
 
       {loading ? (
         <TaskSkeleton />
+      ) : isEvaluationReviewTask(task) ? (
+        <div className="form-stage">
+          <EvaluationReviewForm
+            data={task.data}
+            onComplete={submitTask}
+            submitting={submitting}
+          />
+        </div>
       ) : hasRenderableSchema(task) ? (
         <div className="form-stage">
           <div className="form-stage-header">
