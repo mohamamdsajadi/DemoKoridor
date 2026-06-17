@@ -1,14 +1,14 @@
 /* Embedded form presentation overrides */
 
 :root {
-  --cf-brand: #e9019f;
-  --cf-brand-dark: #a10072;
-  --cf-brand-light: #fde8f6;
-  --cf-surface: #faf7fb;
+  --cf-brand: #2563eb;
+  --cf-brand-dark: #1d4ed8;
+  --cf-brand-light: #eff6ff;
+  --cf-surface: #f9fafb;
   --cf-card: #ffffff;
-  --cf-border: #e5dbe9;
-  --cf-text: #25212a;
-  --cf-muted: #706878;
+  --cf-border: #e4e7ec;
+  --cf-text: #111827;
+  --cf-muted: #667085;
   --cf-radius: 8px;
 }
 
@@ -90,7 +90,7 @@
 
 .fjs-input::placeholder,
 .fjs-textarea::placeholder {
-  color: #8d9a94 !important;
+  color: #98a2b3 !important;
 }
 
 .fjs-input:focus,
@@ -203,7 +203,7 @@
   padding: 0 !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: rgba(233, 1, 159, 0.11) !important;
+  background: rgba(37, 99, 235, 0.11) !important;
   color: var(--cf-brand-dark) !important;
   line-height: 0 !important;
   opacity: 0.75 !important;

@@ -9,6 +9,13 @@ tasklist:
     audience: orchestration
 
 camunda:
+  api:
+    base-url: https://parand.mparsict.com
+    auth:
+      token-url: https://keycloack.parand.mparsict.com/auth/realms/camunda-platform/protocol/openid-connect/token
+      client-id: orchestration
+      client-secret: secret
+      audience: orchestration
   webhook:
     url: http://46.245.79.18:8086/inbound
     authorization:
@@ -18,6 +25,12 @@ camunda:
     mode: self-managed
     grpc-address: http://46.245.79.18:26500
     rest-address: https://parand.mparsict.com
+    auth:
+      method: oidc
+      token-url: https://keycloack.parand.mparsict.com/auth/realms/camunda-platform/protocol/openid-connect/token
+      client-id: orchestration
+      client-secret: secret
+      audience: orchestration
     enabled: true
 server:
-  port: 8020
+  port: ${SERVER_PORT:8025}

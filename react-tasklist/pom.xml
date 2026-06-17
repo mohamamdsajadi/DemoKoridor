@@ -41,6 +41,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+      <dependency>
+          <groupId>io.camunda</groupId>
+          <artifactId>camunda-operate-client-java</artifactId>
+          <version>8.2.0</version>
+      </dependency>
   </dependencies>
 
   <build>

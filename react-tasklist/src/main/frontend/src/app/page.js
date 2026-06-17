@@ -1,193 +1,204 @@
 'use client'
 
-import { useCallback, useEffect, useState } from "react";
-import TaskSummaryCard from './components/task-summary-card';
-import { fetchTasks } from './lib/tasks';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import AppShell from './components/app-shell';
+import {
+  formatFaNumber,
+  getProcessSubtitle,
+  getProcessTitle
+} from './lib/display';
+import {
+  fetchProcessDefinitions,
+  startProcessInstance
+} from './lib/tasks';
 
 export default function Home() {
-  const [tasks, setTasks] = useState([]);
-  const [starting, setStarting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [processDefinitions, setProcessDefinitions] = useState([]);
+  const [startingProcessKey, setStartingProcessKey] = useState("");
+  const [loadingProcesses, setLoadingProcesses] = useState(true);
   const [message, setMessage] = useState("");
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
+  const processLinks = useMemo(() => processDefinitions.map((processDefinition) => ({
+    processDefinitionKey: processDefinition.processDefinitionKey,
+    title: getProcessTitle(processDefinition)
+  })), [processDefinitions]);
+
+  const loadProcessDefinitions = useCallback(async () => {
+    setLoadingProcesses(true);
     setMessage("");
 
     try {
-      setTasks(await fetchTasks());
+      const items = await fetchProcessDefinitions();
+      setProcessDefinitions(items);
     } catch (error) {
-      setMessage(error.message || "خطایی در ارتباط با سرویس رخ داد.");
-      setTasks([]);
+      setMessage(error.message || "دریافت فرایندها با خطا روبه‌رو شد.");
+      setProcessDefinitions([]);
     } finally {
-      setLoading(false);
+      setLoadingProcesses(false);
     }
   }, []);
 
-  const startProcess = async () => {
-    setStarting(true);
+  const startProcess = async (processDefinitionKey) => {
+    if (!processDefinitionKey) {
+      setMessage("برای شروع، شناسه فرایند معتبر نیست.");
+      return;
+    }
+
+    setStartingProcessKey(processDefinitionKey);
     setMessage("");
 
     try {
-      const r = await fetch("/api/start-process", {
-        method: "POST",
-        body: JSON.stringify({ foo: "bar" }),
-        headers: { "Content-Type": "application/json" }
-      });
-
-      if (!r.ok) {
-        throw new Error("شروع سناریوی جدید ناموفق بود.");
-      }
-
-      await loadTasks();
+      const result = await startProcessInstance(processDefinitionKey);
+      const href = `/processes/${encodeURIComponent(processDefinitionKey)}/tasks`;
+      const startedInstanceKey = result?.processInstanceKey
+        ? `?startedInstanceKey=${encodeURIComponent(result.processInstanceKey)}`
+        : "";
+      router.push(`${href}${startedInstanceKey}`);
     } catch (error) {
-      setMessage(error.message || "شروع سناریو با خطا روبه‌رو شد.");
+      setMessage(error.message || "شروع فرایند با خطا روبه‌رو شد.");
     } finally {
-      setStarting(false);
+      setStartingProcessKey("");
     }
   };
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    loadProcessDefinitions();
+  }, [loadProcessDefinitions]);
+
+  const versionCount = processDefinitions.reduce((sum, item) => sum + Number(item.version || 0), 0);
+  const startableCount = processDefinitions.filter((item) => item.hasStartForm !== false).length;
 
   return (
-    <main className="app-shell">
-      <section className="workspace">
-        <nav className="brand-nav" aria-label="ناوبری اصلی">
-          <a className="nav-brand" href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">
-            <img src="/brand/mehrpars-purple.svg" alt="لوگوی مهرپارس" />
-            <span>
-              <strong>مهرپارس</strong>
-              <small>کارتابل درخواست‌ها</small>
-            </span>
-          </a>
-          <div className="nav-links" aria-label="دسترسی سریع">
-            <a href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">mehrparsict.com</a>
-            <span>دانش‌بنیان</span>
-            <span>رتبه ۲ انفورماتیک</span>
+    <AppShell
+      active="processes"
+      title="داشبورد فرایندهای خدمت"
+      eyebrow="سناریوی عملیاتی"
+      subtitle="یک مرکز عملیات واقعی برای شروع پرونده، دیدن کارهای هر فرایند، تکمیل فرم مرحله و بستن همان کار."
+      processLinks={processLinks}
+      actions={(
+        <button
+          className="ghost-action"
+          onClick={loadProcessDefinitions}
+          disabled={loadingProcesses}
+        >
+          {loadingProcesses ? 'در حال بروزرسانی' : 'بروزرسانی فرایندها'}
+        </button>
+      )}
+    >
+      <section className="dashboard-grid">
+        <article className="scenario-card">
+          <p className="eyebrow">تحلیل سناریو</p>
+          <h2>مرکز عملیات درخواست‌های سازمانی</h2>
+          <p>
+            این دمو را مثل میز کار یک تیم خدمات سازمانی طراحی کردم: مشتری یا اپراتور یک پرونده خدمت را شروع می‌کند، هر مرحله انسانی به صف کار می‌آید، کارشناس فرم همان مرحله را تکمیل می‌کند و بعد از ثبت، پرونده به گام بعدی فرایند می‌رود.
+          </p>
+          <div className="flow-rail" aria-label="جریان اصلی">
+            <span>شروع پرونده</span>
+            <span>صف کار فرایند</span>
+            <span>تکمیل فرم مرحله</span>
+            <span>ثبت نتیجه</span>
           </div>
-        </nav>
+        </article>
 
-        <header className="hero-panel">
-          <div className="brand-block">
-            <div>
-              <p className="eyebrow">کارتابل سازمانی مهرپارس</p>
-              <h1>درخواست‌های جاری</h1>
-              <p className="hero-copy">
-                درخواست‌های باز، فرم‌های در انتظار تکمیل و وضعیت اقدام‌ها در این بخش نمایش داده می‌شود.
-              </p>
-              <div className="hero-badges" aria-label="حوزه‌های فعالیت">
-                <span>دولت الکترونیک</span>
-                <span>زیرساخت‌های ICT</span>
-                <span>امنیت و پایش</span>
-              </div>
-            </div>
+        <div className="metric-grid">
+          <MetricCard label="فرایندهای آماده اجرا" value={formatFaNumber(processDefinitions.length)} />
+          <MetricCard label="نسخه‌های عملیاتی" value={formatFaNumber(versionCount)} />
+          <MetricCard label="فرایندهای قابل شروع" value={formatFaNumber(startableCount)} />
+        </div>
+      </section>
+
+      <section className="panel-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">صف شروع</p>
+            <h2>فرایندهای قابل اجرا</h2>
           </div>
-
-          <div className="hero-actions">
-            <div className="metric-card">
-              <span>در انتظار اقدام</span>
-              <strong>{tasks.length.toLocaleString('fa-IR')}</strong>
-            </div>
-            <button
-              className="primary-action"
-              onClick={startProcess}
-              disabled={starting}
-            >
-              <span aria-hidden="true">+</span>
-              {starting ? 'در حال ایجاد...' : 'شروع سناریوی جدید'}
-            </button>
-          </div>
-        </header>
-
-        <div className="content-grid">
-          <aside className="scenario-panel">
-            <p className="eyebrow">سناریوی جلسه</p>
-            <h2>درخواست تأیید خرید</h2>
-            <p>
-              جریان نمونه برای بررسی درخواست خرید و ثبت اطلاعات مورد نیاز واحد مربوطه.
-            </p>
-            <div className="steps">
-              <span>۱. ایجاد درخواست</span>
-              <span>۲. بررسی اطلاعات</span>
-              <span>۳. ارسال برای تصمیم‌گیری</span>
-            </div>
-            <div className="capability-list">
-              <strong>تمرکز دمو</strong>
-              <span>نمایش صف درخواست‌ها</span>
-              <span>تکمیل فرم هر درخواست</span>
-              <span>ارسال نتیجه برای مرحله بعد</span>
-            </div>
-          </aside>
-
-          <section className="task-board" aria-live="polite">
-            <div className="board-header">
-              <div>
-                <p className="eyebrow">صف کار</p>
-                <h2>درخواست‌های قابل اقدام</h2>
-              </div>
-              <button className="ghost-action" onClick={loadTasks} disabled={loading}>
-                {loading ? 'در حال بروزرسانی' : 'بروزرسانی'}
-              </button>
-            </div>
-
-            {message && <div className="notice error">{message}</div>}
-
-            {loading ? (
-              <div className="task-list" aria-hidden="true">
-                {[1, 2].map((item) => (
-                  <article className="task-summary-card task-summary-card--loading" key={item}>
-                    <div className="task-summary-main">
-                      <span className="task-index skeleton-index" />
-                      <div className="task-heading-skeleton">
-                        <span className="skeleton-line tiny" />
-                        <span className="skeleton-line title" />
-                      </div>
-                    </div>
-                    <div className="task-summary-side">
-                      <span className="status-pill status-pill--loading">در حال دریافت</span>
-                      <span className="skeleton-line tiny" />
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : tasks.length === 0 ? (
-              <div className="empty-state">
-                <strong>درخواستی برای اقدام وجود ندارد.</strong>
-                <span>برای اجرای دمو، یک سناریوی جدید شروع کنید.</span>
-              </div>
-            ) : (
-              <div className="task-list">
-                {tasks.map((task, index) => (
-                  <TaskSummaryCard
-                    key={task.id}
-                    task={task}
-                    order={index + 1}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+          <Link className="text-action" href="/tasks">مشاهده همه کارهای فعال</Link>
         </div>
 
-        <footer className="brand-footer">
-          <div className="footer-brand">
-            <img src="/brand/mehrpars-white.svg" alt="لوگوی مهرپارس" />
-            <div>
-              <strong>شرکت مهندسی فناوری اطلاعات و ارتباطات مهرپارس</strong>
-              <p>
-                شرکت دانش‌بنیان خصوصی فعال در تولید زیرساخت‌های پیشرفته فناوری اطلاعات و ارتباطات.
-              </p>
-            </div>
+        {message && <div className="notice error">{message}</div>}
+
+        {loadingProcesses ? (
+          <div className="process-grid" aria-hidden="true">
+            {[1, 2, 3, 4].map((item) => (
+              <article className="process-card process-card--loading" key={item}>
+                <span className="skeleton-line title" />
+                <span className="skeleton-line medium" />
+                <span className="skeleton-input" />
+              </article>
+            ))}
           </div>
-          <div className="footer-meta">
-            <span>info@mparsict.com</span>
-            <span>+۹۸۲۱-۹۱۶ ۹۰ ۷۴۷</span>
-            <a href="https://www.mehrparsict.com/" target="_blank" rel="noreferrer">mehrparsict.com</a>
+        ) : processDefinitions.length === 0 ? (
+          <div className="empty-state">
+            <strong>فرایندی برای نمایش پیدا نشد.</strong>
+            <span>اتصال Camunda یا دسترسی API جستجوی فرایندها را بررسی کنید.</span>
           </div>
-        </footer>
+        ) : (
+          <div className="process-grid">
+            {processDefinitions.map((processDefinition, index) => {
+              const title = getProcessTitle(processDefinition);
+              const key = processDefinition.processDefinitionKey;
+              const starting = startingProcessKey === key;
+
+              return (
+                <article className="process-card" key={key}>
+                  <div className="process-card-head">
+                    <span className="process-avatar">{String(index + 1).padStart(2, "0")}</span>
+                    <div>
+                      <p className="eyebrow">مسیر خدمت</p>
+                      <h3>{title}</h3>
+                      <p className="process-copy">{getProcessSubtitle(processDefinition)}</p>
+                    </div>
+                    <span className="status-pill status-pill--ready">
+                      نسخه {Number(processDefinition.version || 0).toLocaleString('fa-IR')}
+                    </span>
+                  </div>
+
+                  <dl className="process-meta">
+                    <div>
+                      <dt>شناسه فرایند</dt>
+                      <dd>{processDefinition.processDefinitionId || '-'}</dd>
+                    </div>
+                    <div>
+                      <dt>کلید اجرا</dt>
+                      <dd>{key}</dd>
+                    </div>
+                    <div>
+                      <dt>منبع</dt>
+                      <dd>{processDefinition.resourceName || '-'}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="process-actions">
+                    <button
+                      className="primary-action"
+                      onClick={() => startProcess(key)}
+                      disabled={Boolean(startingProcessKey)}
+                    >
+                      {starting ? 'در حال شروع...' : 'شروع پرونده'}
+                    </button>
+                    <Link className="ghost-action" href={`/processes/${encodeURIComponent(key)}/tasks`}>
+                      صف کار
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
-    </main>
+    </AppShell>
+  );
+}
+
+function MetricCard({ label, value }) {
+  return (
+    <article className="metric-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </article>
   );
 }
