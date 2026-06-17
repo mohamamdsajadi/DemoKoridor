@@ -1281,3 +1281,9 @@ h4 {
   border-color: var(--primary);
   background: #ffffff;
 }
+
+.review-comment-field textarea:disabled {
+  cursor: not-allowed;
+  background: var(--surface-soft);
+  color: var(--muted);
+}

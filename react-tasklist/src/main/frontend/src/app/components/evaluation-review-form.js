@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { formatCompactId } from '../lib/display';
 
 const DECISION_APPROVED = 'approved';
-const DECISION_INSPECTION = 'needsInspection';
+const DECISION_NEEDS_REVIEW = 'needsReview';
 
 export default function EvaluationReviewForm({ data = {}, onComplete, submitting }) {
   const fields = useMemo(() => buildReviewFields(data), [data]);
@@ -41,14 +41,17 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
       result[field.key] = {
         value: field.rawValue,
         approved: decision === DECISION_APPROVED,
-        needsInspection: decision === DECISION_INSPECTION,
+        needsInspection: decision === DECISION_NEEDS_REVIEW,
+        needsReview: decision === DECISION_NEEDS_REVIEW,
         decision,
-        comment: comments[field.key]?.trim() || ""
+        comment: decision === DECISION_NEEDS_REVIEW ? comments[field.key]?.trim() || "" : ""
       };
       return result;
     }, {});
 
-    onComplete?.({ evaluationResults });
+    const NEED_REVIEW = fields.some((field) => decisions[field.key] === DECISION_NEEDS_REVIEW);
+
+    onComplete?.({ evaluationResults, NEED_REVIEW });
   };
 
   if (fields.length === 0) {
@@ -64,7 +67,7 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
       <div className="review-intro">
         <div>
           <p className="eyebrow">فرم اختصاصی بازبینی</p>
-          <h4>برای هر مقدار ثبت‌شده وضعیت تایید یا نیاز به بازرسی را مشخص کنید.</h4>
+          <h4>برای هر مقدار ثبت‌شده وضعیت تایید یا نیاز به بررسی را مشخص کنید.</h4>
         </div>
         <span className="status-pill status-pill--ready">
           {remainingCount > 0 ? `${remainingCount.toLocaleString('fa-IR')} مورد بدون تصمیم` : 'همه موارد بررسی شد'}
@@ -89,14 +92,14 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
                   />
                   تایید
                 </label>
-                <label className={decisions[field.key] === DECISION_INSPECTION ? 'review-choice review-choice--selected' : 'review-choice'}>
+                <label className={decisions[field.key] === DECISION_NEEDS_REVIEW ? 'review-choice review-choice--selected' : 'review-choice'}>
                   <input
                     type="checkbox"
-                    checked={decisions[field.key] === DECISION_INSPECTION}
-                    onChange={() => setDecision(field.key, DECISION_INSPECTION)}
+                    checked={decisions[field.key] === DECISION_NEEDS_REVIEW}
+                    onChange={() => setDecision(field.key, DECISION_NEEDS_REVIEW)}
                     disabled={submitting}
                   />
-                  نیاز به بازرسی
+                  نیاز به بررسی
                 </label>
               </div>
               <label className="review-comment-field">
@@ -105,7 +108,7 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
                   value={comments[field.key] || ''}
                   onChange={(event) => setComment(field.key, event.target.value)}
                   placeholder="توضیح یا دلیل تصمیم را بنویسید..."
-                  disabled={submitting}
+                  disabled={submitting || decisions[field.key] !== DECISION_NEEDS_REVIEW}
                   rows={2}
                 />
               </label>
