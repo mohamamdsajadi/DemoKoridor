@@ -1287,3 +1287,42 @@ h4 {
   background: var(--surface-soft);
   color: var(--muted);
 }
+
+.correction-form {
+  display: grid;
+  gap: 16px;
+}
+
+.correction-row--editable {
+  border-color: rgba(180, 83, 9, 0.28);
+  background: var(--warning-soft);
+}
+
+.correction-readonly-note {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-comment-box {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(180, 83, 9, 0.24);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.admin-comment-box span {
+  color: var(--warning);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-comment-box p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}

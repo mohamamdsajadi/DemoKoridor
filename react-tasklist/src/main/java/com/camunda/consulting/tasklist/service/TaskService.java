@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class TaskService {
   private static final Logger LOG = LoggerFactory.getLogger(TaskService.class);
   private static final String EVALUATION_REVIEW_TASK_NAME = "بازبینی توسط کارشناس";
+  private static final String INCOMPLETE_INFORMATION_TASK_NAME = "تکمیل مجدد اطلاعات ناقص توسط کاربر";
   private final ObjectMapper objectMapper;
   private final CamundaTaskListClient camundaTaskListClient;
   private final CamundaRestClient camundaRestClient;
@@ -41,7 +42,8 @@ public class TaskService {
     String taskName = firstText(task, "name", "elementId", "id");
     Map<String, Object> variables = getTaskVariables(id);
 
-    if (EVALUATION_REVIEW_TASK_NAME.equals(taskName)) {
+    if (EVALUATION_REVIEW_TASK_NAME.equals(taskName)
+        || INCOMPLETE_INFORMATION_TASK_NAME.equals(taskName)) {
       return new TaskDto(id, taskName, null, variables, null);
     }
 

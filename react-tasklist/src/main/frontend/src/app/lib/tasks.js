@@ -119,6 +119,11 @@ export function isEvaluationReviewTask(task) {
   return name === "بازبینی توسط کارشناس";
 }
 
+export function isIncompleteInformationTask(task) {
+  const name = String(task?.name || "").trim();
+  return name === "تکمیل مجدد اطلاعات ناقص توسط کاربر";
+}
+
 export function hasRenderableSchema(task) {
   return Boolean(
     task?.schema &&
