@@ -9,16 +9,25 @@ const DECISION_INSPECTION = 'needsInspection';
 export default function EvaluationReviewForm({ data = {}, onComplete, submitting }) {
   const fields = useMemo(() => buildReviewFields(data), [data]);
   const [decisions, setDecisions] = useState({});
+  const [comments, setComments] = useState({});
   const remainingCount = fields.filter((field) => !decisions[field.key]).length;
 
   useEffect(() => {
     setDecisions({});
+    setComments({});
   }, [fields]);
 
   const setDecision = (key, decision) => {
     setDecisions((current) => ({
       ...current,
       [key]: current[key] === decision ? undefined : decision
+    }));
+  };
+
+  const setComment = (key, comment) => {
+    setComments((current) => ({
+      ...current,
+      [key]: comment
     }));
   };
 
@@ -33,7 +42,8 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
         value: field.rawValue,
         approved: decision === DECISION_APPROVED,
         needsInspection: decision === DECISION_INSPECTION,
-        decision
+        decision,
+        comment: comments[field.key]?.trim() || ""
       };
       return result;
     }, {});
@@ -68,24 +78,36 @@ export default function EvaluationReviewForm({ data = {}, onComplete, submitting
               <span className="review-field-key">{field.label}</span>
               <strong>{field.displayValue}</strong>
             </div>
-            <div className="review-actions" role="group" aria-label={`بازبینی ${field.label}`}>
-              <label className={decisions[field.key] === DECISION_APPROVED ? 'review-choice review-choice--selected' : 'review-choice'}>
-                <input
-                  type="checkbox"
-                  checked={decisions[field.key] === DECISION_APPROVED}
-                  onChange={() => setDecision(field.key, DECISION_APPROVED)}
+            <div className="review-field-controls">
+              <div className="review-actions" role="group" aria-label={`بازبینی ${field.label}`}>
+                <label className={decisions[field.key] === DECISION_APPROVED ? 'review-choice review-choice--selected' : 'review-choice'}>
+                  <input
+                    type="checkbox"
+                    checked={decisions[field.key] === DECISION_APPROVED}
+                    onChange={() => setDecision(field.key, DECISION_APPROVED)}
+                    disabled={submitting}
+                  />
+                  تایید
+                </label>
+                <label className={decisions[field.key] === DECISION_INSPECTION ? 'review-choice review-choice--selected' : 'review-choice'}>
+                  <input
+                    type="checkbox"
+                    checked={decisions[field.key] === DECISION_INSPECTION}
+                    onChange={() => setDecision(field.key, DECISION_INSPECTION)}
+                    disabled={submitting}
+                  />
+                  نیاز به بازرسی
+                </label>
+              </div>
+              <label className="review-comment-field">
+                <span>نظر کارشناس</span>
+                <textarea
+                  value={comments[field.key] || ''}
+                  onChange={(event) => setComment(field.key, event.target.value)}
+                  placeholder="توضیح یا دلیل تصمیم را بنویسید..."
                   disabled={submitting}
+                  rows={2}
                 />
-                تایید
-              </label>
-              <label className={decisions[field.key] === DECISION_INSPECTION ? 'review-choice review-choice--selected' : 'review-choice'}>
-                <input
-                  type="checkbox"
-                  checked={decisions[field.key] === DECISION_INSPECTION}
-                  onChange={() => setDecision(field.key, DECISION_INSPECTION)}
-                  disabled={submitting}
-                />
-                نیاز به بازرسی
               </label>
             </div>
           </article>
