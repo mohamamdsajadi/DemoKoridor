@@ -14,17 +14,36 @@ import {
   startProcessInstance
 } from './lib/tasks';
 
+const CATEGORY_STORAGE_KEY = 'processCategories';
+const UNCATEGORIZED_KEY = 'uncategorized';
+const DEFAULT_PROCESS_CATEGORIES = [
+  { id: 'evaluation', name: 'ارزیابی', prefix: 'Evaluation_p1' },
+  { id: 'register', name: 'ثبت نام', prefix: 'register_p1' }
+];
+
 export default function Home() {
   const router = useRouter();
   const [processDefinitions, setProcessDefinitions] = useState([]);
   const [startingProcessKey, setStartingProcessKey] = useState("");
   const [loadingProcesses, setLoadingProcesses] = useState(true);
   const [message, setMessage] = useState("");
+  const [categories, setCategories] = useState(DEFAULT_PROCESS_CATEGORIES);
+  const [activeCategoryKey, setActiveCategoryKey] = useState(DEFAULT_PROCESS_CATEGORIES[0].id);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryPrefix, setNewCategoryPrefix] = useState("");
 
   const processLinks = useMemo(() => processDefinitions.map((processDefinition) => ({
     processDefinitionKey: processDefinition.processDefinitionKey,
     title: getProcessTitle(processDefinition)
   })), [processDefinitions]);
+
+  const categorizedProcesses = useMemo(
+    () => categorizeProcesses(processDefinitions, categories),
+    [categories, processDefinitions]
+  );
+  const activeCategory = categorizedProcesses.find((category) => category.id === activeCategoryKey)
+    || categorizedProcesses[0];
+  const visibleProcessDefinitions = activeCategory?.processes || [];
 
   const loadProcessDefinitions = useCallback(async () => {
     setLoadingProcesses(true);
@@ -65,8 +84,57 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const savedCategories = readSavedCategories();
+    if (savedCategories !== null) {
+      setCategories(savedCategories);
+      setActiveCategoryKey(savedCategories[0]?.id || UNCATEGORIZED_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
     loadProcessDefinitions();
   }, [loadProcessDefinitions]);
+
+  useEffect(() => {
+    if (categorizedProcesses.length > 0 && !categorizedProcesses.some((category) => category.id === activeCategoryKey)) {
+      setActiveCategoryKey(categorizedProcesses[0].id);
+    }
+  }, [activeCategoryKey, categorizedProcesses]);
+
+  const addCategory = (event) => {
+    event.preventDefault();
+    const name = newCategoryName.trim();
+    const prefix = newCategoryPrefix.trim();
+
+    if (!name || !prefix) {
+      setMessage("برای افزودن دسته، نام دسته و پیشوند فرایند را وارد کنید.");
+      return;
+    }
+
+    const nextCategories = [
+      ...categories,
+      {
+        id: `custom-${Date.now()}`,
+        name,
+        prefix
+      }
+    ];
+    saveCategories(nextCategories);
+    setCategories(nextCategories);
+    setActiveCategoryKey(nextCategories[nextCategories.length - 1].id);
+    setNewCategoryName("");
+    setNewCategoryPrefix("");
+    setMessage("");
+  };
+
+  const removeCategory = (categoryId) => {
+    const nextCategories = categories.filter((category) => category.id !== categoryId);
+    saveCategories(nextCategories);
+    setCategories(nextCategories);
+    if (activeCategoryKey === categoryId) {
+      setActiveCategoryKey(nextCategories[0]?.id || UNCATEGORIZED_KEY);
+    }
+  };
 
   const versionCount = processDefinitions.reduce((sum, item) => sum + Number(item.version || 0), 0);
   const startableCount = processDefinitions.filter((item) => item.hasStartForm !== false).length;
@@ -119,6 +187,70 @@ export default function Home() {
           <Link className="text-action" href="/tasks">مشاهده همه کارهای فعال</Link>
         </div>
 
+        <div className="category-manager">
+          <div className="category-tabs" role="tablist" aria-label="دسته‌بندی فرایندها">
+            {categorizedProcesses.map((category) => {
+              const removable = category.id !== UNCATEGORIZED_KEY;
+
+              return (
+                <div
+                  className={activeCategory?.id === category.id ? "category-tab category-tab--active" : "category-tab"}
+                  key={category.id}
+                  onClick={() => setActiveCategoryKey(category.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setActiveCategoryKey(category.id);
+                    }
+                  }}
+                  role="tab"
+                  tabIndex={0}
+                >
+                  <span className="category-tab-main">
+                    <strong>{category.name}</strong>
+                    <small>{category.prefix ? `پیشوند: ${category.prefix}` : 'بدون پیشوند'}</small>
+                  </span>
+                  <span className="category-count">{formatFaNumber(category.processes.length)}</span>
+                  {removable && (
+                    <button
+                      className="category-remove"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        removeCategory(category.id);
+                      }}
+                      type="button"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <form className="category-form" onSubmit={addCategory}>
+            <div>
+              <label htmlFor="category-name">نام دسته جدید</label>
+              <input
+                id="category-name"
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                placeholder="مثلا: اعتبارسنجی"
+              />
+            </div>
+            <div>
+              <label htmlFor="category-prefix">پیشوند نام فرایند</label>
+              <input
+                id="category-prefix"
+                value={newCategoryPrefix}
+                onChange={(event) => setNewCategoryPrefix(event.target.value)}
+                placeholder="مثلا: credit_"
+              />
+            </div>
+            <button className="ghost-action" type="submit">افزودن دسته</button>
+          </form>
+        </div>
+
         {message && <div className="notice error">{message}</div>}
 
         {loadingProcesses ? (
@@ -136,15 +268,20 @@ export default function Home() {
             <strong>فرایندی برای نمایش پیدا نشد.</strong>
             <span>اتصال Camunda یا دسترسی API جستجوی فرایندها را بررسی کنید.</span>
           </div>
+        ) : visibleProcessDefinitions.length === 0 ? (
+          <div className="empty-state">
+            <strong>فرایندی در دسته «{activeCategory?.name}» وجود ندارد.</strong>
+            <span>نام فرایندها باید با پیشوند تعریف‌شده برای این دسته شروع شود.</span>
+          </div>
         ) : (
-          <div className="process-grid">
-            {processDefinitions.map((processDefinition, index) => {
+          <div className="process-row-list">
+            {visibleProcessDefinitions.map((processDefinition, index) => {
               const title = getProcessTitle(processDefinition);
               const key = processDefinition.processDefinitionKey;
               const starting = startingProcessKey === key;
 
               return (
-                <article className="process-card" key={key}>
+                <article className="process-card process-card--row" key={key}>
                   <div className="process-card-head">
                     <span className="process-avatar">{String(index + 1).padStart(2, "0")}</span>
                     <div>
@@ -201,4 +338,63 @@ function MetricCard({ label, value }) {
       <strong>{value}</strong>
     </article>
   );
+}
+
+function categorizeProcesses(processDefinitions, categories) {
+  const categoryBuckets = categories.map((category) => ({
+    ...category,
+    processes: []
+  }));
+  const uncategorized = {
+    id: UNCATEGORIZED_KEY,
+    name: "سایر",
+    prefix: "",
+    processes: []
+  };
+
+  processDefinitions.forEach((processDefinition) => {
+    const processName = getRawProcessName(processDefinition);
+    const category = categoryBuckets.find((item) => matchesPrefix(processName, item.prefix));
+    if (category) {
+      category.processes.push(processDefinition);
+    } else {
+      uncategorized.processes.push(processDefinition);
+    }
+  });
+
+  return uncategorized.processes.length > 0
+    ? [...categoryBuckets, uncategorized]
+    : categoryBuckets;
+}
+
+function getRawProcessName(processDefinition) {
+  return String(
+    processDefinition?.name
+    || processDefinition?.processDefinitionId
+    || processDefinition?.resourceName
+    || ""
+  );
+}
+
+function matchesPrefix(processName, prefix) {
+  return processName.toLowerCase().startsWith(String(prefix || "").toLowerCase());
+}
+
+function readSavedCategories() {
+  try {
+    const savedValue = window.localStorage.getItem(CATEGORY_STORAGE_KEY);
+    if (savedValue === null) {
+      return null;
+    }
+    const savedCategories = JSON.parse(savedValue || "[]");
+    return Array.isArray(savedCategories)
+      ? savedCategories.filter((category) => category?.name && category?.prefix)
+      : [];
+  } catch {
+    return null;
+  }
+}
+
+function saveCategories(categories) {
+  window.localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories));
 }
