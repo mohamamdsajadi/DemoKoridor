@@ -308,21 +308,24 @@ export default function Home() {
                       <dd>{processDefinition.resourceName || '-'}</dd>
                     </div>
                   </dl>
+                    <div className="process-actions">
+                        <button
+                            className="primary-action"
+                            onClick={() => startProcess(key)}
+                            disabled={Boolean(startingProcessKey)}
+                        >
+                            {starting ? 'در حال شروع...' : 'شروع پرونده'}
+                        </button>
 
-                  <div className="process-actions">
-                    <button
-                      className="primary-action"
-                      onClick={() => startProcess(key)}
-                      disabled={Boolean(startingProcessKey)}
-                    >
-                      {starting ? 'در حال شروع...' : 'شروع پرونده'}
+                        <Link
+                            className="ghost-action"
+                            href={`/processes/${encodeURIComponent(key)}/tasks`}
+                        >
+                            صف کار
+                        </Link>
                     </div>
-                    <Link className="ghost-action" href={`/processes/${encodeURIComponent(key)}/tasks`}>
-                      صف کار
-                    </Link>
-                  </div>
                 </article>
-              );
+              )
             })}
           </div>
         )}
