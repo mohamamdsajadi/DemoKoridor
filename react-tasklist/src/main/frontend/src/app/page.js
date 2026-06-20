@@ -85,9 +85,9 @@ export default function Home() {
 
   useEffect(() => {
     const savedCategories = readSavedCategories();
-    if (savedCategories.length > 0) {
+    if (savedCategories !== null) {
       setCategories(savedCategories);
-      setActiveCategoryKey(savedCategories[0].id);
+      setActiveCategoryKey(savedCategories[0]?.id || UNCATEGORIZED_KEY);
     }
   }, []);
 
@@ -125,6 +125,15 @@ export default function Home() {
     setNewCategoryName("");
     setNewCategoryPrefix("");
     setMessage("");
+  };
+
+  const removeCategory = (categoryId) => {
+    const nextCategories = categories.filter((category) => category.id !== categoryId);
+    saveCategories(nextCategories);
+    setCategories(nextCategories);
+    if (activeCategoryKey === categoryId) {
+      setActiveCategoryKey(nextCategories[0]?.id || UNCATEGORIZED_KEY);
+    }
   };
 
   const versionCount = processDefinitions.reduce((sum, item) => sum + Number(item.version || 0), 0);
@@ -180,17 +189,43 @@ export default function Home() {
 
         <div className="category-manager">
           <div className="category-tabs" role="tablist" aria-label="دسته‌بندی فرایندها">
-            {categorizedProcesses.map((category) => (
-              <button
-                className={activeCategory?.id === category.id ? "category-tab category-tab--active" : "category-tab"}
-                key={category.id}
-                onClick={() => setActiveCategoryKey(category.id)}
-                type="button"
-              >
-                <span>{category.name}</span>
-                <small>{formatFaNumber(category.processes.length)}</small>
-              </button>
-            ))}
+            {categorizedProcesses.map((category) => {
+              const removable = category.id !== UNCATEGORIZED_KEY;
+
+              return (
+                <div
+                  className={activeCategory?.id === category.id ? "category-tab category-tab--active" : "category-tab"}
+                  key={category.id}
+                  onClick={() => setActiveCategoryKey(category.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setActiveCategoryKey(category.id);
+                    }
+                  }}
+                  role="tab"
+                  tabIndex={0}
+                >
+                  <span className="category-tab-main">
+                    <strong>{category.name}</strong>
+                    <small>{category.prefix ? `پیشوند: ${category.prefix}` : 'بدون پیشوند'}</small>
+                  </span>
+                  <span className="category-count">{formatFaNumber(category.processes.length)}</span>
+                  {removable && (
+                    <button
+                      className="category-remove"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        removeCategory(category.id);
+                      }}
+                      type="button"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <form className="category-form" onSubmit={addCategory}>
@@ -239,14 +274,14 @@ export default function Home() {
             <span>نام فرایندها باید با پیشوند تعریف‌شده برای این دسته شروع شود.</span>
           </div>
         ) : (
-          <div className="process-grid">
+          <div className="process-row-list">
             {visibleProcessDefinitions.map((processDefinition, index) => {
               const title = getProcessTitle(processDefinition);
               const key = processDefinition.processDefinitionKey;
               const starting = startingProcessKey === key;
 
               return (
-                <article className="process-card" key={key}>
+                <article className="process-card process-card--row" key={key}>
                   <div className="process-card-head">
                     <span className="process-avatar">{String(index + 1).padStart(2, "0")}</span>
                     <div>
@@ -281,7 +316,7 @@ export default function Home() {
                       disabled={Boolean(startingProcessKey)}
                     >
                       {starting ? 'در حال شروع...' : 'شروع پرونده'}
-                    </button>
+                    </div>
                     <Link className="ghost-action" href={`/processes/${encodeURIComponent(key)}/tasks`}>
                       صف کار
                     </Link>
@@ -347,12 +382,16 @@ function matchesPrefix(processName, prefix) {
 
 function readSavedCategories() {
   try {
-    const savedCategories = JSON.parse(window.localStorage.getItem(CATEGORY_STORAGE_KEY) || "[]");
+    const savedValue = window.localStorage.getItem(CATEGORY_STORAGE_KEY);
+    if (savedValue === null) {
+      return null;
+    }
+    const savedCategories = JSON.parse(savedValue || "[]");
     return Array.isArray(savedCategories)
       ? savedCategories.filter((category) => category?.name && category?.prefix)
       : [];
   } catch {
-    return [];
+    return null;
   }
 }
 
