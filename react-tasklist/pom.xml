@@ -48,6 +48,12 @@
       </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>checkFormat</id>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
